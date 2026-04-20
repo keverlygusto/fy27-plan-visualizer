@@ -56,6 +56,7 @@ Start month index: `0=May'26, 1=Jun, 2=Jul, 3=Aug, 4=Sep, 5=Oct, 6=Nov, 7=Dec, 8
 ## Deployment
 
 Hosted via Google Apps Script:
+- **Live dashboard:** https://script.google.com/a/macros/gusto.com/s/AKfycbxmokOWBJJEb9MwFWw-dRzRA8c3N4eUjfg_GMfRWXviX0lXX-bo5MWGkphJH4qnrI6UiQ/exec
 - In `Code.gs`: `function doGet() { return HtmlService.createHtmlOutputFromFile('index').setTitle('FY27 Accountant Channel Forecast'); }`
 - Deploy as Web App → Execute as Me → Access: Anyone at Gusto
 
