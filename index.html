@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FY27 Accountant Channel Forecast</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #F7F7F5;
+    color: #1A1A1A;
+    padding: 40px 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* -- Header -- */
+  .header {
+    margin-bottom: 36px;
+    border-bottom: 3px solid #0A8080;
+    padding-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0A8080;
+    margin-bottom: 4px;
+  }
+  .header .subtitle {
+    font-size: 15px;
+    color: #666;
+    font-weight: 400;
+  }
+  .header .date {
+    font-size: 13px;
+    color: #999;
+    margin-top: 4px;
+  }
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .pdf-btn {
+    background: #0A8080;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .pdf-btn:hover { background: #087070; }
+  @media print {
+    .pdf-btn { display: none; }
+    body { padding: 20px 30px; }
+    .roadmap-container { overflow: visible; }
+    .risk-card, .conf-card, .forecast-table-container, .user-notes-container { break-inside: avoid; }
+  }
+
+  /* -- Overall Forecast Table -- */
+  .overall-forecast-section {
+    margin-bottom: 48px;
+  }
+  .forecast-layout {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+  }
+  .forecast-table-container {
+    background: white;
+    border-radius: 10px;
+    padding: 24px 28px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    flex: 0 0 auto;
+  }
+  .user-notes-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .user-notes-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    color: #888;
+    margin-bottom: 6px;
+  }
+  .user-notes {
+    flex: 1;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: inherit;
+    font-size: 12px;
+    color: #333;
+    line-height: 1.5;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow-y: auto;
+    cursor: text;
+  }
+  .user-notes:focus {
+    outline: none;
+    border-color: #0A8080;
+  }
+  .user-notes:empty::before {
+    content: attr(data-placeholder);
+    color: #bbb;
+    pointer-events: none;
+  }
+  .forecast-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .forecast-table th {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 16px 12px;
+    border-bottom: 2px solid #E0E0E0;
+    vertical-align: bottom;
+    line-height: 1.3;
+  }
+  .forecast-table th.metric-col {
+    width: 220px;
+  }
+  .forecast-table th .th-sub {
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+  }
+  .forecast-table th.fy26 { color: #888; }
+  .forecast-table th.baseline { color: #0A8080; }
+  .forecast-table th.current { color: #F45D48; }
+  .forecast-table td {
+    padding: 9px 16px;
+    border-bottom: 1px solid #F0F0F0;
+  }
+  .forecast-table .metric-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    text-align: left;
+  }
+  .forecast-table .val {
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .forecast-table .val.fy26 { color: #999; }
+  .forecast-table .val.baseline { color: #0A8080; }
+  .forecast-table .val.current { color: #333; }
+  .forecast-table .val.negative { color: #D44; }
+  .forecast-table .val.highlight-green {
+    background: #E6F7F0;
+    border-radius: 4px;
+    color: #1A7A4C;
+  }
+  .forecast-table .val.highlight-teal {
+    background: #E0F2F2;
+    border-radius: 4px;
+    color: #0A8080;
+    font-size: 18px;
+  }
+  .forecast-table .bold-row td {
+    font-weight: 700;
+  }
+  .forecast-table .bold-row .metric-name {
+    font-weight: 800;
+  }
+  .forecast-table .gnarr-row td {
+    border-top: 2px solid #0A8080;
+    border-bottom: none;
+    padding-top: 12px;
+  }
+  .forecast-table .gnarr-row .metric-name {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0A8080;
+  }
+
+  /* -- Section Headers -- */
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title .num {
+    background: #0A8080;
+    color: white;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  /* -- Waterfall Chart -- */
+  .waterfall-section {
+    margin-bottom: 48px;
+  }
+  .waterfall {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 420px;
+    padding: 20px 0;
+    position: relative;
+  }
+  .waterfall-col {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .waterfall-bar {
+    width: 70%;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    min-height: 2px;
+    transition: all 0.3s;
+  }
+  .waterfall-bar:hover {
+    filter: brightness(1.1);
+    transform: scaleX(1.05);
+  }
+  .waterfall-bar .bar-value {
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .waterfall-bar .bar-pct {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    opacity: 0.9;
+  }
+  .waterfall-label {
+    margin-top: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    color: #666;
+    line-height: 1.3;
+    width: 100%;
+    max-width: 100%;
+  }
+  /* Connector lines */
+  .waterfall-col .connector {
+    position: absolute;
+    border-top: 2px dashed #ccc;
+    z-index: 1;
+  }
+
+  /* Color coding */
+  .color-actual { background: #B0B0B0; }
+  .color-organic { background: #7EBFBF; }
+  .color-firmacq { background: #2E86AB; }
+  .color-freq { background: #7B2D8B; }
+  .color-cvr { background: #F18F01; }
+  .color-acv { background: #2CA58D; }
+  .color-total { background: #0A8080; }
+
+  .text-firmacq { color: #2E86AB; }
+  .text-freq { color: #7B2D8B; }
+  .text-cvr { color: #F18F01; }
+  .text-acv { color: #2CA58D; }
+
+  /* -- Lever Detail Cards -- */
+  .lever-section {
+    margin-bottom: 48px;
+  }
+  .lever-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .lever-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border-top: 4px solid #ccc;
+  }
+  .lever-card.firmacq { border-top-color: #2E86AB; }
+  .lever-card.freq { border-top-color: #7B2D8B; }
+  .lever-card.cvr { border-top-color: #F18F01; }
+  .lever-card.acv { border-top-color: #2CA58D; }
+  .lever-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .lever-card-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .lever-card-header .lever-total {
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .lever-split {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .lever-split-col {
+    flex: 1;
+  }
+  .lever-split-col h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #999;
+    font-weight: 700;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #eee;
+  }
+  .initiative-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 5px 0;
+    font-size: 12px;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .initiative-row:last-child { border-bottom: none; }
+  .initiative-name {
+    color: #444;
+    flex: 1;
+    padding-right: 8px;
+    line-height: 1.3;
+  }
+  .initiative-impact {
+    font-weight: 700;
+    white-space: nowrap;
+    color: #333;
+  }
+  .initiative-start {
+    font-size: 10px;
+    color: #aaa;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+  .split-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: #eee;
+    margin-top: 10px;
+    overflow: hidden;
+    display: flex;
+  }
+  .split-bar .gtm-fill {
+    background: #0A8080;
+    height: 100%;
+  }
+  .split-bar .rd-fill {
+    background: #F45D48;
+    height: 100%;
+  }
+  .split-legend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  /* -- Hybrid Gantt Timeline -- */
+  .timeline-section { margin-bottom: 48px; }
+  .roadmap-container {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow-x: auto;
+  }
+  .gantt-wrapper { padding: 0; }
+  .gantt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    table-layout: fixed;
+  }
+  /* Column sizing: name=220px, 18 months @ ~44px, lever=80px, impact=90px, conf=80px */
+  .gantt-table colgroup .col-name { width: 220px; }
+  .gantt-table colgroup .col-month { width: 44px; }
+  .gantt-table colgroup .col-lever { width: 80px; }
+  .gantt-table colgroup .col-impact { width: 90px; }
+  .gantt-table colgroup .col-conf { width: 80px; }
+  .gantt-table colgroup .col-incr { width: 80px; }
+
+  .gantt-table th {
+    padding: 4px 2px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 11px;
+    color: #666;
+    border-bottom: 1px solid #E0E0E0;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 2;
+  }
+  .gantt-table th.q-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #333;
+    border-bottom: none;
+    padding-top: 10px;
+  }
+  .gantt-table th.month-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: #aaa;
+    border-bottom: 2px solid #0A8080;
+    padding-bottom: 6px;
+  }
+  .gantt-table th.meta-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    font-weight: 700;
+    border-bottom: 2px solid #0A8080;
+    padding-bottom: 6px;
+  }
+  .gantt-table th.name-label {
+    text-align: left;
+    padding-left: 12px;
+    border-bottom: 2px solid #0A8080;
+  }
+  /* Quarter dividers on header */
+  .gantt-table th.q-start { border-left: 2px solid #D0D0D0; }
+
+  /* Swim lane headers */
+  .gantt-swim {
+    background: #F0F0F0;
+    border-top: 2px solid #ccc;
+  }
+  .gantt-swim td {
+    padding: 8px 12px;
+    font-weight: 800;
+    font-size: 13px;
+  }
+  .gantt-swim.rd td { color: #F45D48; }
+  .gantt-swim.gtm td { color: #0A8080; }
+  .gantt-swim.outcome td {
+    color: #0A8080;
+    background: #E0F2F2;
+    border-top: 3px solid #0A8080;
+  }
+
+  /* Subgroup headers */
+  .gantt-subgroup td {
+    padding: 6px 12px 4px 16px;
+    font-weight: 700;
+    font-size: 11px;
+    color: #555;
+    background: #FAFAFA;
+    border-top: 1px solid #E8E8E8;
+  }
+
+  /* Initiative rows */
+  .gantt-table td {
+    padding: 0;
+    height: 28px;
+    border-bottom: 1px solid #F0F0F0;
+    vertical-align: middle;
+    position: relative;
+  }
+  .gantt-table td.gantt-name {
+    padding: 4px 8px 4px 28px;
+    font-size: 11px;
+    color: #444;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .gantt-table td.gantt-month {
+    padding: 3px 1px;
+  }
+  .gantt-table td.gantt-month.q-start {
+    border-left: 2px solid #E8E8E8;
+  }
+  .gantt-bar {
+    height: 20px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .gantt-bar:hover { filter: brightness(1.15); }
+  .gantt-bar.firmacq { background: #2E86AB; }
+  .gantt-bar.freq { background: #7B2D8B; }
+  .gantt-bar.cvr { background: #F18F01; }
+  .gantt-bar.acv { background: #2CA58D; }
+  .gantt-bar.neutral { background: #C0C0C0; }
+  .gantt-bar.nonpayroll { background: #C0C0C0; }
+  .gantt-bar.dash { background: #C0C0C0; }
+
+  /* Meta columns */
+  .gantt-table td.gantt-meta {
+    text-align: center;
+    padding: 2px 4px;
+    vertical-align: middle;
+  }
+  .lever-pill {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 700;
+    color: white;
+    white-space: nowrap;
+  }
+  .lever-pill.firmacq { background: #2E86AB; }
+  .lever-pill.freq { background: #7B2D8B; }
+  .lever-pill.cvr { background: #F18F01; }
+  .lever-pill.acv { background: #2CA58D; }
+  .gantt-meta input {
+    width: 74px;
+    padding: 3px 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: inherit;
+    text-align: right;
+    background: #FAFAFA;
+  }
+  .gantt-meta input:focus { outline: none; border-color: #0A8080; background: white; }
+  .gantt-meta select {
+    padding: 3px 4px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: inherit;
+    background: #FAFAFA;
+    cursor: pointer;
+  }
+  .gantt-meta select:focus { outline: none; border-color: #0A8080; }
+  .gantt-meta select.lever-select {
+    border-width: 2px;
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+
+  /* Summary input rows */
+  .summary-input-row {
+    background: #F8F5FF;
+  }
+  .summary-input-row td {
+    border-bottom: 1px solid #E8E0F0;
+  }
+  .summary-input-name {
+    font-style: italic;
+    color: #555 !important;
+    font-weight: 700 !important;
+    padding-left: 28px !important;
+  }
+  .gantt-name-indent {
+    padding-left: 44px !important;
+    font-size: 10px !important;
+    color: #666 !important;
+  }
+
+  /* Outcome row */
+  .outcome-val { font-size: 12px; font-weight: 800; color: #0A8080; }
+  .outcome-yoy { font-size: 10px; color: #666; }
+  .outcome-delta { font-size: 9px; color: #2CA58D; font-weight: 600; }
+
+  /* Confidence Summary */
+  .conf-summary {
+    margin-top: 20px;
+    display: flex;
+    gap: 16px;
+  }
+  .conf-card {
+    flex: 1;
+    background: white;
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border-top: 4px solid #ccc;
+    text-align: center;
+  }
+  .conf-card.high { border-top-color: #2CA58D; }
+  .conf-card.med { border-top-color: #F5A623; }
+  .conf-card.low { border-top-color: #F45D48; }
+  .conf-card .conf-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .conf-card.high .conf-label { color: #2CA58D; }
+  .conf-card.med .conf-label { color: #D4941A; }
+  .conf-card.low .conf-label { color: #F45D48; }
+  .conf-card .conf-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1A1A1A;
+  }
+  .conf-card .conf-sub {
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+  }
+
+  /* -- Risk Section -- */
+  .risk-section {
+    margin-bottom: 48px;
+  }
+  .risk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .risk-card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border-left: 4px solid #ccc;
+  }
+  .risk-card.high { border-left-color: #F45D48; background: #FFF9F8; }
+  .risk-card.medium { border-left-color: #F5A623; background: #FFFDF5; }
+  .risk-card.low { border-left-color: #2CA58D; background: #F5FFFC; }
+  .risk-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .risk-card.high .risk-label { color: #F45D48; }
+  .risk-card.medium .risk-label { color: #D4941A; }
+  .risk-card.low .risk-label { color: #2CA58D; }
+  .risk-card h4 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: #333;
+  }
+  .risk-owner {
+    font-size: 11px;
+    color: #999;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .risk-card p {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+  }
+  .risk-card .risk-impact {
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 6px;
+    color: #444;
+  }
+
+  /* -- Concentration callout -- */
+  .callout {
+    background: #E8F4F4;
+    border: 1px solid #B5DBDB;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 40px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .callout-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+  .callout-text {
+    font-size: 13px;
+    color: #333;
+    line-height: 1.5;
+  }
+  .callout-text strong {
+    color: #0A8080;
+  }
+
+  /* -- Legend -- */
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #666;
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  /* -- Footer -- */
+  .footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid #ddd;
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  /* Print styles */
+
+  /* ── Summary Table (Section 1) ── */
+  .summary-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    overflow: hidden;
+  }
+  .summary-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #E8E8E8;
+  }
+  .toggle-group {
+    display: flex;
+    background: #EFEFEF;
+    border-radius: 6px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .toggle-btn {
+    padding: 4px 14px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    letter-spacing: 0.4px;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .toggle-btn.active   { background: #0A8080; color: white; }
+  .toggle-btn.inactive { background: transparent; color: #888; }
+  .toggle-btn.inactive:hover { background: #E0E0E0; color: #555; }
+  .summary-subtitle { font-size: 12px; color: #888; margin-left: auto; }
+  .summary-subtitle em { color: #0A8080; font-style: normal; font-weight: 600; }
+
+  .s-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  .s-table colgroup col.col-metric { width: 186px; }
+  .s-table colgroup col.col-q      { width: 84px; }
+  .s-table colgroup col.col-fy     { width: 90px; }
+  .s-table colgroup col.col-yoy    { width: 76px; }
+
+  .s-table thead tr.group-row th {
+    padding: 9px 6px; font-size: 13px; font-weight: 800;
+    text-align: center; color: white;
+  }
+  .s-gh-metric { background: #1D2F2F; text-align: left !important; padding-left: 16px !important; font-size: 11px !important; font-weight: 700 !important; letter-spacing: 0.8px !important; text-transform: uppercase; color: #9BB !important; }
+  .s-gh-26  { background: #0A8080; }
+  .s-gh-27  { background: #076060; }
+  .s-gh-yoy { background: #1D2F2F; font-size: 11px !important; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .s-table thead tr.sub-row th {
+    padding: 5px 6px; font-size: 11px; font-weight: 600;
+    color: #8BB; background: #1D2F2F; text-align: center;
+    border-bottom: 2px solid #0A8080;
+  }
+  .s-table thead tr.sub-row th.sh-metric { text-align: left; padding-left: 16px; color: #557; }
+  .s-table thead tr.sub-row th.sh-fy     { font-weight: 800; color: #CDE; }
+
+  .s-table tbody tr { border-bottom: 1px solid #F0F0F0; }
+  .s-table tbody tr:last-child { border-bottom: none; }
+  .s-table tbody tr:hover .s-mc,
+  .s-table tbody tr:hover .s-dc { background: #F3FBFB; }
+  .s-table tbody tr:hover .s-yc { background: #C8E8E8; }
+
+  .s-mc { padding: 10px 16px; font-size: 13px; font-weight: 600; color: #444; vertical-align: middle; white-space: nowrap; }
+  .s-dc { padding: 8px 6px; text-align: center; vertical-align: middle; }
+  .s-dc.s-ann { background: #FAFAFA; border-left: 1px solid #E8E8E8; }
+  .s-dc.s-fy27-start { border-left: 2px solid #D0D0D0; }
+
+  .s-v { display: block; font-size: 13px; font-weight: 600; color: #1A1A1A; line-height: 1.2; }
+  .s-ann .s-v { font-weight: 800; }
+  .s-p { display: block; font-size: 11px; font-weight: 600; margin-top: 3px; line-height: 1; }
+  .s-p.pos { color: #0A8080; }
+  .s-p.neg { color: #D44040; }
+  .s-p.neu { color: #BBB; }
+
+  .s-yc  { background: #E4F4F4; text-align: center; vertical-align: middle; padding: 8px 6px; border-left: 2px solid #C0DEDE; }
+  .s-yv  { font-size: 17px; font-weight: 800; color: #0A8080; }
+  .s-yv.neg { color: #D44040; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-row">
+    <div>
+      <h1>FY27 Accountant Channel Forecast</h1>
+      <div class="subtitle">Key Drivers &middot; Risks &middot; Opportunities</div>
+      <div class="date">FBOS Review &middot; March 2026 &middot; Sources: 18-Month Roadmap, Operator Sandbox</div>
+    </div>
+    <button class="pdf-btn" onclick="downloadPDF()">Download PDF</button>
+  </div>
+</div>
+
+<!-- Overall Forecast Section -->
+<div class="overall-forecast-section">
+  <div class="section-title" style="justify-content: space-between; margin-bottom: 16px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span class="num">1</span> Overall Forecast
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="toggle-group">
+        <button class="toggle-btn active"   id="btn-baseline" onclick="setScenario('baseline')">BASELINE</button>
+        <button class="toggle-btn inactive" id="btn-forecast" onclick="setScenario('forecast')">FORECAST</button>
+      </div>
+      <span class="summary-subtitle">Accountant Channel &nbsp;|&nbsp; FY26 vs FY27 &nbsp;|&nbsp; <em id="scenario-label">Baseline Scenario</em></span>
+    </div>
+  </div>
+  <div class="summary-card">
+    <div id="summary-table-wrap"></div>
+  </div>
+</div>
+
+<!-- Section 1: Waterfall Bridge -->
+<div class="waterfall-section">
+  <div class="section-title">
+    <span class="num">2</span> Where Does the Growth Come From?
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#B0B0B0"></div> FY26 Forecast</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#7EBFBF"></div> Baseline Growth</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2E86AB"></div> Firm Acquisition</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#7B2D8B"></div> Frequency (Adds/Firm)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2CA58D"></div> ACV / Mix</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0A8080"></div> FY27</div>
+  </div>
+  <div class="waterfall" id="waterfall"></div>
+</div>
+
+
+
+<!-- Section 3: When Does It Show Up?
+     Outcome metric pulled dynamically from SD.forecast.fy27 (matches Forecast toggle in Section 1)
+     SOURCE: Operator Sandbox (Q4.FY26) tab → range AR26:AZ65
+     Columns used: AR=DRI, AS=Initiative name, AT=Metric Impacted, AU=Start Month,
+                   AV=Lift per Month (filter: non-blank, non-zero), AW=Confidence, AZ=FY27 GNARR Impact
+     Filtered to: Metric ∈ {Firm Acquisition, Frequency (Opps/Adds per Firm), ACV} AND AV > 0
+-->
+<div class="timeline-section">
+  <div class="section-title">
+    <span class="num">3</span> When Does It Show Up?
+  </div>
+  <div class="roadmap-container">
+    <div id="initiative-gantt-wrap"></div>
+  </div>
+  <div class="conf-summary" id="initiative-conf-summary"></div>
+</div>
+
+<!-- Section 4: Risks
+     SOURCE: Risk card content from Roadmap deck Slide 7 ("Assumptions Required to Land the Roadmap")
+     Slide ID: 1kY2ZXifq7I2JOt_Q4wRwjsblSaykfS15-iIm3UOFw0Q
+     Impact dollar estimates are analyst judgment / hardcoded — re-confirm against latest team comms each refresh.
+-->
+<div class="risk-section">
+  <div class="section-title">
+    <span class="num">4</span> What Could Break?
+  </div>
+  <div class="risk-grid">
+    <!-- Row 1: High Risk -->
+    <div class="risk-card high">
+      <div class="risk-label">High Risk</div>
+      <h4>Cross-Org Dependencies</h4>
+      <div class="risk-owner">GPro</div>
+      <p>Delivery depends on org prioritizing accountant persona. Requires alignment across CoreX, USP, Support, and Marketing.</p>
+    </div>
+    <div class="risk-card high">
+      <div class="risk-label">High Risk</div>
+      <h4>Time to Performance / Execution Ramp</h4>
+      <div class="risk-owner">GTM All</div>
+      <p>Relying on ramp assumptions across team capacity, 10 open roles, recruit motion, bulk adds—without historical data.</p>
+    </div>
+    <div class="risk-card high">
+      <div class="risk-label">High Risk</div>
+      <h4>AI Roadmap Upside (Contingent)</h4>
+      <div class="risk-owner">GPro</div>
+      <p>FY27 doesn't reflect AI-driven acceleration. Early signals positive, but contingent on hiring two PMs.</p>
+    </div>
+    <!-- Row 2: Medium Risk -->
+    <div class="risk-card medium">
+      <div class="risk-label">Medium Risk</div>
+      <h4>Marketing Dependencies</h4>
+      <div class="risk-owner">GTM Marketing</div>
+      <p>Growth depends on brand campaign, paid media, social activation, and creative support for accountant audience.</p>
+    </div>
+    <div class="risk-card medium">
+      <div class="risk-label">Medium Risk</div>
+      <h4>New Initiative Volume &amp; Measurement</h4>
+      <div class="risk-owner">GTM All &amp; GPro</div>
+      <p>Launching multiple initiatives without benchmarks. Data cleanup may distort metrics short-term.</p>
+    </div>
+    <div class="risk-card medium">
+      <div class="risk-label">Medium Risk</div>
+      <h4>ACV Assumptions (Full Platform Selling)</h4>
+      <div class="risk-owner">GTM All &amp; GPro</div>
+      <p>ACV growth relies on unproven full platform selling expansion. If adoption lags, ACV may underperform.</p>
+    </div>
+    <!-- Row 3: Opportunities -->
+    <div class="risk-card low">
+      <div class="risk-label">Opportunity</div>
+      <h4>Launching New Motions — Recruit &amp; Bulk Adds</h4>
+      <p>Investing in two new motions to drive partner volume. Recruit targets net-new firm acquisition. Bulk Adds captures enterprise-scale client migrations.</p>
+    </div>
+    <div class="risk-card low">
+      <div class="risk-label">Opportunity</div>
+      <h4>Changing Value &amp; Partner Engagement</h4>
+      <p>Evolving how we deliver value. Includes Program Benefits, Partner Lifecycle Model, Gumloop Agents, and Partner Onboarding &amp; Enablement.</p>
+    </div>
+    <div class="risk-card low">
+      <div class="risk-label">Opportunity</div>
+      <h4>Evolving to Full Platform Selling</h4>
+      <p>Shifting from payroll-only to cross-product positioning. Full Platform Selling for new business and add-ons, plus Time Tracking attach.</p>
+    </div>
+  </div>
+</div>
+
+
+<div class="footer">
+  Snapshot from Operator Sandbox (Q4.FY26) &middot; Numbers are approximate and may differ from latest financial forecast &middot; FBOS internal use only
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// DATA SOURCE REFERENCE — FY27 Accountant Channel Forecast
+// ════════════════════════════════════════════════════════════════════════════
+//
+// SECTION 1 — Summary Table (quarterly metric grid)
+//   Spreadsheet: "FY26 Accountant Forecast vs. Actual"
+//   ID: 1lv4RwsOXVHgtbaYAR1AISrK0o1w_OL_T6gthMypGSfw
+//   Tab: "FY27 Scenarios" (gid=835073805)
+//
+//   BASELINE scenario  → range H4:BI32  ("FY27 Baseline" block)
+//   FORECAST scenario  → range H35:BI63 ("FY27 Financial Forecast" block)
+//
+//   For each range, pull the RIGHT-HAND summary columns only:
+//     • Monthly columns (cols I–BF) are ignored
+//     • Quarterly totals: Q1-FY26 thru Q4-FY27  (columns ~BH–BS)
+//     • Annual totals:    FY2026, FY2027          (last two non-blank cols)
+//     • YoY % block:     rows immediately below the absolute value block,
+//                        same column layout
+//   Metrics to pull (row labels in col H):
+//     Partner Program Firms | Opportunities | Opps/Firm
+//     Adds | Adds/Firm | New ACV | GNARR ($k)
+//   Note: Tier GNARR and Add-On GNARR rows exist in the sheet but are
+//         intentionally excluded from this view.
+//
+// SECTION 2 — Waterfall
+//   FY26_BASE:        "FY27 Scenarios" tab → Baseline block (H4:BI32), FY2026 annual GNARR ($k) ÷ 1000
+//   Baseline Growth:  FY27 Baseline annual GNARR minus FY26 Base — both from same range
+//   Firm Acquisition: Operator Sandbox (Q4.FY26) tab → AW1:AX1 (dollar total, ÷ 1,000,000)
+//   ACV / Mix:        Operator Sandbox (Q4.FY26) tab → AW3:AX3 (dollar total, ÷ 1,000,000)
+//   Frequency:        PLUG — FY27 Forecast GNARR minus all other bars
+//   FY27 total:       "FY27 Scenarios" tab → Forecast block (H35:BI63), FY2027 annual GNARR ($k) ÷ 1000
+//
+// SECTION 3 — Gantt / Roadmap
+//   Initiative names, launch dates, swim lane structure:
+//     Google Slides "18-Month Product & GTM Roadmap"
+//     ID: 1kY2ZXifq7I2JOt_Q4wRwjsblSaykfS15-iIm3UOFw0Q
+//     Slides 5, 7, 9
+//       Slide 5: full initiative list with launch dates (MM/DD) by swim lane
+//       Slide 7: assumptions and dependencies → informs risk cards
+//       Slide 9: resourcing context
+//   Default FY27 impact ($M) and Confidence per initiative:
+//     Spreadsheet above, tab "Operator Sandbox (Q4.FY26)"
+//     Column "FY27 GNARR Impact (est.)" → round to nearest $0.1M
+//     Column "Confidence"
+//   Lever assignment per initiative:
+//     Same tab, column "Metric Impacted"
+//     Mapping: Frequency → freq | Firm Acquisition → firmacq
+//              Opp to Add CvR → cvr | ACV → acv
+//   Outcome Metric row (quarterly GNARR + YoY + delta vs baseline):
+//     Derived from "FY27 Financial Forecast" section of FY27 Scenarios tab
+//     (same range H35:BI63, GNARR quarterly values)
+//
+// SECTION 4 — Risks & Opportunities
+//   Risk card content:
+//     Slide 7 of the Roadmap deck above ("Assumptions Required to Land
+//     the Roadmap" — critical dependencies and GTM assumptions table)
+//   Impact dollar estimates in risk cards: analyst judgment / hardcoded;
+//     re-confirm against latest team comms each refresh cycle
+//
+// ════════════════════════════════════════════════════════════════════════════
+
+// ---- Summary Table (Section 1) ----
+const METRICS = [
+  { key: 'firms',       label: 'Partner Program Firms', fmt: 'int'    },
+  { key: 'opps',        label: 'Opportunities',          fmt: 'int'    },
+  { key: 'oppsPerFirm', label: 'Opps / Firm',            fmt: 'dec2'   },
+  { key: 'adds',        label: 'Adds',                   fmt: 'int'    },
+  { key: 'addsPerFirm', label: 'Adds / Firm',            fmt: 'dec2'   },
+  { key: 'acv',         label: 'New ACV',                fmt: 'dollar' },
+  { key: 'gnarr',       label: 'GNARR ($k)',             fmt: 'gnarr'  },
+];
+
+const SD = {
+  baseline: {
+    fy26: {
+      q1: { firms:20430, opps:13534, oppsPerFirm:0.66, adds:10026, addsPerFirm:0.49, acv:1135, gnarr:11381 },
+      q2: { firms:21289, opps:12188, oppsPerFirm:0.57, adds:9656,  addsPerFirm:0.45, acv:1168, gnarr:11277 },
+      q3: { firms:22640, opps:20791, oppsPerFirm:0.92, adds:16452, addsPerFirm:0.73, acv:1225, gnarr:20156 },
+      q4: { firms:23353, opps:14804, oppsPerFirm:0.63, adds:11576, addsPerFirm:0.50, acv:1174, gnarr:13582 },
+      fy: { firms:23353, opps:61317, oppsPerFirm:2.63, adds:47710, addsPerFirm:2.04, acv:1182, gnarr:56396 },
+    },
+    fy26yoy: {
+      q1: { firms:'+18%', opps:'+15%', oppsPerFirm:'-3%',  adds:'+5%',  addsPerFirm:'-11%', acv:'+10%', gnarr:'+16%' },
+      q2: { firms:'+19%', opps:'+3%',  oppsPerFirm:'-13%', adds:'+7%',  addsPerFirm:'-10%', acv:'+11%', gnarr:'+19%' },
+      q3: { firms:'+19%', opps:'+8%',  oppsPerFirm:'-9%',  adds:'+0%',  addsPerFirm:'-16%', acv:'+20%', gnarr:'+20%' },
+      q4: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-7%',  adds:'+8%',  addsPerFirm:'-9%',  acv:'+1%',  gnarr:'+8%'  },
+      fy: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-8%',  adds:'+4%',  addsPerFirm:'-12%', acv:'+11%', gnarr:'+16%' },
+    },
+    fy27: {
+      q1: { firms:23903, opps:13805, oppsPerFirm:0.58, adds:9926,  addsPerFirm:0.42, acv:1215, gnarr:12064 },
+      q2: { firms:24482, opps:12310, oppsPerFirm:0.50, adds:9849,  addsPerFirm:0.40, acv:1215, gnarr:11954 },
+      q3: { firms:25583, opps:21623, oppsPerFirm:0.84, adds:16945, addsPerFirm:0.66, acv:1250, gnarr:21365 },
+      q4: { firms:26389, opps:14804, oppsPerFirm:0.55, adds:11692, addsPerFirm:0.45, acv:1196, gnarr:13989 },
+      fy: { firms:26389, opps:62542, oppsPerFirm:2.37, adds:48412, addsPerFirm:1.83, acv:1225, gnarr:59372 },
+    },
+    fy27yoy: {
+      q1: { firms:'+17%', opps:'+2%',  oppsPerFirm:'-12%', adds:'-1%', addsPerFirm:'-15%', acv:'+7%', gnarr:'+6%' },
+      q2: { firms:'+15%', opps:'+1%',  oppsPerFirm:'-12%', adds:'+2%', addsPerFirm:'-11%', acv:'+4%', gnarr:'+6%' },
+      q3: { firms:'+13%', opps:'+4%',  oppsPerFirm:'-9%',  adds:'+3%', addsPerFirm:'-9%',  acv:'+2%', gnarr:'+6%' },
+      q4: { firms:'+13%', opps:'+0%',  oppsPerFirm:'-12%', adds:'+1%', addsPerFirm:'-11%', acv:'+2%', gnarr:'+3%' },
+      fy: { firms:'+13%', opps:'+2%',  oppsPerFirm:'-10%', adds:'+1%', addsPerFirm:'-11%', acv:'+4%', gnarr:'+5%' },
+    },
+  },
+
+  forecast: {
+    fy26: {
+      q1: { firms:20430, opps:13534, oppsPerFirm:0.66, adds:10026, addsPerFirm:0.49, acv:1135, gnarr:11381 },
+      q2: { firms:21289, opps:12188, oppsPerFirm:0.57, adds:9656,  addsPerFirm:0.45, acv:1168, gnarr:11277 },
+      q3: { firms:22640, opps:20791, oppsPerFirm:0.92, adds:16452, addsPerFirm:0.73, acv:1225, gnarr:20156 },
+      q4: { firms:23353, opps:14804, oppsPerFirm:0.63, adds:11576, addsPerFirm:0.50, acv:1174, gnarr:13582 },
+      fy: { firms:23353, opps:61317, oppsPerFirm:2.63, adds:47710, addsPerFirm:2.04, acv:1182, gnarr:56396 },
+    },
+    fy26yoy: {
+      q1: { firms:'+18%', opps:'+15%', oppsPerFirm:'-3%',  adds:'+5%',  addsPerFirm:'-11%', acv:'+10%', gnarr:'+16%' },
+      q2: { firms:'+19%', opps:'+3%',  oppsPerFirm:'-13%', adds:'+7%',  addsPerFirm:'-10%', acv:'+11%', gnarr:'+19%' },
+      q3: { firms:'+19%', opps:'+8%',  oppsPerFirm:'-9%',  adds:'+0%',  addsPerFirm:'-16%', acv:'+20%', gnarr:'+20%' },
+      q4: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-7%',  adds:'+8%',  addsPerFirm:'-9%',  acv:'+1%',  gnarr:'+8%'  },
+      fy: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-8%',  adds:'+4%',  addsPerFirm:'-12%', acv:'+11%', gnarr:'+16%' },
+    },
+    fy27: {
+      q1: { firms:24185, opps:14663, oppsPerFirm:0.61, adds:10949, addsPerFirm:0.45, acv:1225, gnarr:13411 },
+      q2: { firms:25065, opps:14206, oppsPerFirm:0.57, adds:10887, addsPerFirm:0.43, acv:1243, gnarr:13531 },
+      q3: { firms:26594, opps:25512, oppsPerFirm:0.96, adds:20130, addsPerFirm:0.76, acv:1296, gnarr:26080 },
+      q4: { firms:27532, opps:18129, oppsPerFirm:0.66, adds:14523, addsPerFirm:0.53, acv:1227, gnarr:17818 },
+      fy: { firms:27532, opps:72510, oppsPerFirm:2.63, adds:56489, addsPerFirm:2.05, acv:1254, gnarr:70840 },
+    },
+    fy27yoy: {
+      q1: { firms:'+18%', opps:'+8%',  oppsPerFirm:'-8%', adds:'+9%',  addsPerFirm:'-8%', acv:'+8%',  gnarr:'+18%' },
+      q2: { firms:'+18%', opps:'+17%', oppsPerFirm:'-1%', adds:'+13%', addsPerFirm:'-4%', acv:'+6%',  gnarr:'+20%' },
+      q3: { firms:'+17%', opps:'+23%', oppsPerFirm:'+4%', adds:'+22%', addsPerFirm:'+4%', acv:'+6%',  gnarr:'+29%' },
+      q4: { firms:'+18%', opps:'+22%', oppsPerFirm:'+4%', adds:'+25%', addsPerFirm:'+6%', acv:'+5%',  gnarr:'+31%' },
+      fy: { firms:'+18%', opps:'+18%', oppsPerFirm:'0%',  adds:'+18%', addsPerFirm:'0%',  acv:'+6%',  gnarr:'+26%' },
+    },
+  },
+};
+
+function sFmt(v, type) {
+  if (v == null) return '—';
+  switch (type) {
+    case 'int':    return v.toLocaleString();
+    case 'dec2':   return v.toFixed(2);
+    case 'dollar': return '$' + v.toLocaleString();
+    case 'gnarr':  return '$' + (v / 1000).toFixed(1) + 'm';
+    default:       return v;
+  }
+}
+function sPctCls(p) {
+  if (!p || p === '+0%' || p === '0%') return 'neu';
+  return p.startsWith('-') ? 'neg' : 'pos';
+}
+
+function renderSummary(scenario) {
+  const d = SD[scenario];
+  const QS = ['q1','q2','q3','q4','fy'];
+  let html = `<table class="s-table"><colgroup>
+    <col class="col-metric">
+    <col class="col-q"><col class="col-q"><col class="col-q"><col class="col-q"><col class="col-fy">
+    <col class="col-q"><col class="col-q"><col class="col-q"><col class="col-q"><col class="col-fy">
+    <col class="col-yoy">
+  </colgroup><thead>
+    <tr class="group-row">
+      <th class="s-gh-metric">Metric</th>
+      <th class="s-gh-26" colspan="5">FY26</th>
+      <th class="s-gh-27" colspan="5">FY27</th>
+      <th class="s-gh-yoy">YOY<br><span style="font-size:9px;font-weight:500;opacity:.6">FY27</span></th>
+    </tr>
+    <tr class="sub-row">
+      <th class="sh-metric"></th>
+      <th>Q1'26</th><th>Q2'26</th><th>Q3'26</th><th>Q4'26</th><th class="sh-fy">FY26</th>
+      <th>Q1'27</th><th>Q2'27</th><th>Q3'27</th><th>Q4'27</th><th class="sh-fy">FY27</th>
+      <th></th>
+    </tr>
+  </thead><tbody>`;
+
+  METRICS.forEach(m => {
+    html += '<tr>';
+    html += `<td class="s-mc">${m.label}</td>`;
+    QS.forEach(p => {
+      const isAnn = p === 'fy';
+      const val = d.fy26[p][m.key], yoy = d.fy26yoy[p][m.key];
+      const cls = isAnn ? 'neu' : sPctCls(yoy);
+      html += `<td class="s-dc${isAnn?' s-ann':''}"><span class="s-v">${sFmt(val,m.fmt)}</span><span class="s-p ${cls}">${yoy}</span></td>`;
+    });
+    QS.forEach((p, i) => {
+      const isAnn = p === 'fy';
+      const val = d.fy27[p][m.key], yoy = d.fy27yoy[p][m.key];
+      const cls = isAnn ? 'neu' : sPctCls(yoy);
+      html += `<td class="s-dc${isAnn?' s-ann':''}${i===0?' s-fy27-start':''}"><span class="s-v">${sFmt(val,m.fmt)}</span><span class="s-p ${cls}">${yoy}</span></td>`;
+    });
+    const fyYoy = d.fy27yoy.fy[m.key];
+    html += `<td class="s-yc"><span class="s-yv${sPctCls(fyYoy)==='neg'?' neg':''}">${fyYoy}</span></td></tr>`;
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('summary-table-wrap').innerHTML = html;
+}
+
+function setScenario(s) {
+  document.getElementById('btn-baseline').className = 'toggle-btn ' + (s === 'baseline' ? 'active' : 'inactive');
+  document.getElementById('btn-forecast').className = 'toggle-btn ' + (s === 'forecast' ? 'active' : 'inactive');
+  document.getElementById('scenario-label').textContent = s === 'baseline' ? 'Baseline Scenario' : 'Forecast w/ Initiatives';
+  renderSummary(s);
+}
+
+renderSummary('baseline');
+
+// ---- Dynamic Waterfall Chart ----
+// Tracks all impact inputs by lever for bottoms-up summation
+const impactInputs = []; // { input, getLever, getConf } — populated during Gantt build
+const summaryImpactInputs = []; // { input, lever, conf } — for summary rows (Brand in Market)
+
+// SOURCE: "FY27 Scenarios" tab (H4:BI32) → Baseline FY2026 annual GNARR ($k) ÷ 1000
+const FY26_BASE = SD.baseline.fy26.fy.gnarr / 1000;  // = $55.991M
+
+// SOURCE: "FY27 Scenarios" tab — FY27 Baseline annual GNARR minus FY26 Base (H4:BI32, bottom of baseline block)
+const ORGANIC = Math.round((SD.baseline.fy27.fy.gnarr - SD.baseline.fy26.fy.gnarr)) / 1000;  // = $3.434M
+
+// SOURCE: Operator Sandbox (Q4.FY26) tab → range AW1:AX3 — lever totals in dollars
+const FIRM_ACQ  = 2234676 / 1e6;  // row 1 "Firm Acquisition"               → $2.235M
+const ACV_FIXED = 1398091 / 1e6;  // row 3 "ACV"                            → $1.398M
+// Frequency is the plug (computed in renderWaterfall)
+
+// SOURCE: "FY27 Scenarios" tab (H35:BI63) → Forecast FY2027 annual GNARR ($k) ÷ 1000
+const FY27_FCST = SD.forecast.fy27.fy.gnarr / 1000;  // = $69.916M
+const chartHeight = 320;
+
+function parseImpact(val) {
+  if (!val) return 0;
+  const cleaned = val.replace(/[^0-9.\-]/g, '');
+  return parseFloat(cleaned) || 0;
+}
+
+function sumByLever(leverKey) {
+  let total = 0;
+  impactInputs.forEach(entry => {
+    if (entry.getLever() === leverKey) {
+      total += parseImpact(entry.input.value);
+    }
+  });
+  summaryImpactInputs.forEach(entry => {
+    if (entry.lever === leverKey) {
+      total += parseImpact(entry.input.value);
+    }
+  });
+  return Math.round(total * 10) / 10;
+}
+
+function renderWaterfall() {
+  // Frequency is the plug: FY27 Forecast GNARR minus all other bars
+  const freq = Math.round((FY27_FCST - FY26_BASE - ORGANIC - FIRM_ACQ - ACV_FIXED) * 100) / 100;
+
+  const waterfallData = [
+    { label: 'FY26\nForecast',       value: Math.round(FY26_BASE  * 10) / 10,  type: 'base',  color: 'color-actual'  },
+    { label: 'Baseline\nGrowth',     value: Math.round(ORGANIC    * 10) / 10,  type: 'delta', color: 'color-organic' },
+    { label: 'Firm\nAcquisition',    value: Math.round(FIRM_ACQ   * 100) / 100, type: 'delta', color: 'color-firmacq' },
+    { label: 'Frequency\nAdds/Firm', value: freq,                               type: 'delta', color: 'color-freq'    },
+    { label: 'ACV /\nMix',           value: Math.round(ACV_FIXED  * 100) / 100, type: 'delta', color: 'color-acv'    },
+    { label: 'FY27',                 value: Math.round(FY27_FCST  * 10) / 10,  type: 'total', color: 'color-total'  },
+  ];
+
+  const container = document.getElementById('waterfall');
+  container.innerHTML = '';
+  const totalIncremental = FIRM_ACQ + freq + ACV_FIXED;
+  const maxVal = FY27_FCST > 0 ? FY27_FCST : 80;
+  const minBarPx = 8;
+
+  let running = 0;
+  waterfallData.forEach(d => {
+    const col = document.createElement('div');
+    col.className = 'waterfall-col';
+    const bar = document.createElement('div');
+    bar.className = `waterfall-bar ${d.color}`;
+
+    // Scale: base/total bars capped at 150px, deltas use remaining space proportionally
+    const baseCap = 60;   // FY26 base bar height (px) — kept short to give delta bars room
+    const deltaScale = 20; // px per $1M for delta bars — larger scale so $1.8M bars are clearly visible
+    let barHeight, bottomOffset;
+    if (d.type === 'base') {
+      barHeight = baseCap;
+      bottomOffset = 0;
+      running = 0;
+    } else if (d.type === 'total') {
+      barHeight = baseCap + (totalIncremental + ORGANIC) * deltaScale;
+      bottomOffset = 0;
+    } else {
+      barHeight = d.value > 0 ? Math.max(d.value * deltaScale, minBarPx) : minBarPx;
+      bottomOffset = baseCap + running * deltaScale;
+      running += d.value;
+    }
+
+    bar.style.height = barHeight + 'px';
+    bar.style.marginBottom = bottomOffset + 'px';
+
+    const valLabel = document.createElement('div');
+    valLabel.className = 'bar-value';
+    valLabel.style.color = d.type === 'delta' ? '#333' : (d.type === 'total' ? '#0A8080' : '#666');
+    valLabel.textContent = d.type === 'delta' ? `+$${d.value.toFixed(1)}M` : `$${d.value.toFixed(1)}M`;
+    bar.appendChild(valLabel);
+
+
+    const label = document.createElement('div');
+    label.className = 'waterfall-label';
+    label.textContent = d.label;
+    col.appendChild(bar);
+    col.appendChild(label);
+    container.appendChild(col);
+  });
+}
+
+// ---- Hybrid Gantt Renderer ----
+// Months: 0=May'26 ... 11=Apr'27 (FY27 only: Q1'27 through Q4'27)
+const MONTHS = ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+const QUARTERS = [
+  { label: "Q1'27", start: 0, span: 3 },
+  { label: "Q2'27", start: 3, span: 3 },
+  { label: "Q3'27", start: 6, span: 3 },
+  { label: "Q4'27", start: 9, span: 3 },
+];
+// SOURCE: FY27 Scenarios tab → "FY27 Financial Forecast" block (H35:BI63)
+// GNARR ($k) row, Q1–Q4 FY27 quarterly columns ÷ 1000 → displayed as $Xm
+// YoY % = same block's FY27 YoY row; delta vs baseline = Forecast minus Baseline quarterly GNARR
+// Full-year totals: FY27 Financial Forecast FY2027 col ($69.9M) vs Baseline FY2027 col ($59.4M)
+const OUTCOME = [
+  { gnarr: '$13.4M', yoy: '18% YoY', delta: '+$1.3M vs baseline' },  // Q1'27: $13,411k forecast vs $12,064k baseline
+  { gnarr: '$13.5M', yoy: '20% YoY', delta: '+$1.6M vs baseline' },  // Q2'27: $13,531k forecast vs $11,954k baseline
+  { gnarr: '$26.1M', yoy: '29% YoY', delta: '+$4.7M vs baseline' },  // Q3'27: $26,080k forecast vs $21,365k baseline
+  { gnarr: '$17.8M', yoy: '31% YoY', delta: '+$3.8M vs baseline' },  // Q4'27: $17,818k forecast vs $13,989k baseline
+];
+
+// SOURCE: Initiative names, launch dates, swim lane structure →
+//   Google Slides "18-Month Product & GTM Roadmap"
+//   ID: 1kY2ZXifq7I2JOt_Q4wRwjsblSaykfS15-iIm3UOFw0Q  (Slide 5)
+//   s = launch month index (0=May'26 … 11=Apr'27); items before May'26 clamped to s=0
+//   d = launch date label shown on bar (MM/DD or descriptive)
+//
+// SOURCE: impact ($), conf, lever →
+//   Spreadsheet tab "Operator Sandbox (Q4.FY26)" in same file as Section 1
+//   Columns: "FY27 GNARR Impact (est.)" (→ rounded to $0.1M), "Confidence", "Metric Impacted"
+//   Lever map: Frequency→freq | Firm Acquisition→firmacq | Opp to Add CvR→cvr | ACV→acv
+//   Items with lever:'dash' or 'nonpayroll' have no modeled GNARR impact and are excluded from waterfall
+//
+// Month index: 0=May, 1=Jun, 2=Jul, 3=Aug, 4=Sep, 5=Oct, 6=Nov, 7=Dec, 8=Jan, 9=Feb, 10=Mar, 11=Apr
+const data = {
+  rd: {
+    label: 'Gusto Pro R&D',
+    groups: [
+      { name: 'Gpro KTLO', items: [
+        { name: 'AI-driven bookkeeping / sync errors', s: 0, d: '4/30', lever: 'dash', impact: '', conf: 'Med', sz: 0 },
+        { name: 'De-Dupe / SSO', s: 1, d: '6/30', lever: 'dash', impact: '', conf: 'Med', sz: 120475 },
+      ]},
+      { name: 'GPro Horizon 1a', items: [
+        { name: 'Accountant-Grade Gus', s: 4, d: '9/30', lever: 'freq', impact: '$0.2M', conf: 'Med', sz: 178633 },
+        { name: 'Roles & Permissions', s: 1, d: '6/30', lever: 'freq', impact: '$0.2M', conf: 'Med', sz: 242838 },
+        { name: 'Reporting', s: 0, d: '5/31', lever: 'freq', impact: '', conf: 'Med', sz: 0 },
+        { name: 'Pro Dashboard - Ongoing use', s: 3, d: '8/31', lever: 'freq', impact: '$0.2M', conf: 'Med', sz: 197139 },
+        { name: 'Practice Mgmt Integration', s: 0, d: '5/31', lever: 'dash', impact: '', conf: 'Med', sz: 128567 },
+        { name: 'Firm Communications', s: 0, d: '5/31', lever: 'freq', impact: '$0.2M', conf: 'Med', sz: 156681 },
+        { name: 'Pro Dashboard - First time use', s: 5, d: '10/31', lever: 'firmacq', impact: '$0.1M', conf: 'Med', sz: 75794 },
+        { name: 'Audit Log', s: 5, d: '10/31', lever: 'dash', impact: '', conf: 'Med', sz: 0 },
+        { name: 'MarTech Infra for Activation Nurture', s: 3, d: '8/31', lever: 'firmacq', impact: '$0.2M', conf: 'Med', sz: 238465 },
+      ]},
+      { name: 'GPro Horizon 1B', items: [
+        { name: 'Advisory Opportunities', s: 3, d: '8/31', lever: 'nonpayroll', impact: '', conf: 'High', sz: 0 },
+        { name: 'MarTech Infrastructure Expansion', s: 6, d: '11/30', lever: 'nonpayroll', impact: '', conf: 'High', sz: 0 },
+      ]},
+      { name: 'GPro Horizon 2', items: [
+        { name: 'AI-Driven Workflows: Payroll', s: 10, d: '3/31', lever: 'freq', impact: '$0.1M', conf: 'Med', sz: 53630 },
+        { name: 'Task Agent MVP via Gus', s: 10, d: '3/31', lever: 'freq', impact: '$0.1M', conf: 'Med', sz: 53630 },
+      ]},
+    ]
+  },
+  gtm: {
+    label: 'Go-to-Market',
+    groups: [
+      { name: 'Firm Life Cycle', items: [
+        { name: 'Audiences', s: 0, d: '2/28', lever: 'firmacq', impact: '$0.3M', conf: 'High', sz: 522269 },
+        { name: 'AI Firm Health Model', s: 0, d: '2/28', lever: 'cvr', impact: '', conf: 'High', sz: 0 },
+        { name: 'Outbound/ABM for Recruit, ABC Self Serve', s: 0, d: '3/31', lever: 'firmacq', impact: '', conf: 'High', sz: 0 },
+        { name: 'Recruit through Associations/Events', s: 1, d: '6/3', lever: 'firmacq', impact: '$0.2M', conf: 'High', sz: 0 },
+        { name: 'Standardized Firm Onboarding', s: 4, d: '9/30', lever: 'firmacq', impact: '$0.1M', conf: 'Low', sz: 357266 },
+        { name: 'AI Voice, LLM Search', s: 5, d: '10/31', lever: 'firmacq', impact: '', conf: 'Med', sz: 0 },
+        { name: 'Partner Enablement', s: 4, d: 'Sep-L', lever: 'cvr', impact: '', conf: 'High', sz: 0 },
+        { name: 'Partner Support', s: 3, d: '8/31', lever: 'cvr', impact: '$0.2M', conf: 'Low', sz: 591417 },
+        { name: 'PRM', s: 6, d: 'TBD', lever: 'firmacq', impact: '', conf: 'Low', sz: 0 },
+      ]},
+      { name: 'Brand in Market', summaryInputs: [
+        { label: 'Program Redesign - Reach', lever: 'firmacq', impact: '$0.2M' },
+        { label: 'Program Redesign - Frequency', lever: 'freq', impact: '$0.6M' },
+        { label: 'Program Redesign - Yield', lever: 'acv', impact: '$0.2M' },
+      ], items: [
+        { name: 'Command of Message', s: 0, d: '4/30', lever: 'neutral', impact: '', conf: 'High', indent: true, noLever: true, noImpact: true, sz: 0 },
+        { name: '1PA 500 Co-Marketing', s: 0, d: '2/28', lever: 'neutral', impact: '', conf: 'High', indent: true, noLever: true, noImpact: true, sz: 0 },
+        { name: 'Partner Perks Program', s: 1, d: '6/3', lever: 'neutral', impact: '', conf: 'Med', indent: true, noLever: true, noImpact: true, sz: 0 },
+        { name: 'Gumloop Agents for Firms', s: 0, d: '5/1', lever: 'neutral', impact: '', conf: 'Med', indent: true, noLever: true, noImpact: true, sz: 1214188 },
+        { name: 'Dedicated Co-Marketing', s: 0, d: '4/1', lever: 'neutral', impact: '', conf: 'High', indent: true, noLever: true, noImpact: true, sz: 0 },
+        { name: 'Accountant Web Surfaces', s: 0, d: '5/1', lever: 'neutral', impact: '', conf: 'Med', indent: true, noLever: true, noImpact: true, sz: 0 },
+        { name: 'Partner Perks Refresh', s: 6, d: '11/30', lever: 'neutral', impact: '', conf: 'Med', indent: true, noLever: true, noImpact: true, sz: 794367 },
+      ]},
+      { name: 'Growth / Activation of Base', items: [
+        { name: 'Sales - Role and Comp Redesign - New Firms', s: 0, d: 'Early', lever: 'firmacq', impact: '$0.5M', conf: 'High', sz: 0 },
+        { name: 'Sales - Role and Comp Redesign - Productivity', s: 0, d: 'Early', lever: 'freq', impact: '$1.8M', conf: 'Med', sz: 0 },
+        { name: 'Integrated Marketing Campaigns', s: 0, d: '5/1', lever: 'freq', impact: '$2.1M', conf: 'High', sz: 2089078 },
+        { name: 'Compete Campaign', s: 0, d: '2/28', lever: 'acv', impact: '', conf: 'High', sz: 0 },
+        { name: 'Firm Gifting', s: 0, d: '2/28', lever: 'freq', impact: '', conf: 'High', sz: 0 },
+        { name: 'Full Platform Selling (Sales/PMM)', s: 0, d: '5/1', lever: 'acv', impact: '$0.9M', conf: 'High', sz: 944108 },
+        { name: 'Always-on Campaigns', s: 3, d: 'Aug', lever: 'dash', impact: '', conf: 'High', sz: 0 },
+      ]},
+    ]
+  }
+};
+
+function buildGantt() {
+  const wrapper = document.getElementById('gantt-wrapper');
+  const table = document.createElement('table');
+  table.className = 'gantt-table';
+
+  // Colgroup
+  const cg = document.createElement('colgroup');
+  cg.innerHTML = '<col class="col-name">' +
+    MONTHS.map(() => '<col class="col-month">').join('') +
+    '<col class="col-lever"><col class="col-impact"><col class="col-conf"><col class="col-incr">';
+  table.appendChild(cg);
+
+  // Header row 1: quarter labels
+  const thead = document.createElement('thead');
+  let r1 = '<tr><th class="q-label" rowspan="1"></th>';
+  QUARTERS.forEach(q => { r1 += `<th class="q-label" colspan="3">${q.label}</th>`; });
+  r1 += '<th class="q-label" rowspan="1"></th><th class="q-label" rowspan="1"></th><th class="q-label" rowspan="1"></th><th class="q-label" rowspan="1"></th></tr>';
+
+  // Header row 2: month labels + meta labels
+  let r2 = '<tr><th class="name-label"></th>';
+  MONTHS.forEach((m, i) => {
+    const qStart = (i % 3 === 0) ? ' q-start' : '';
+    r2 += `<th class="month-label${qStart}">${m}</th>`;
+  });
+  r2 += '<th class="meta-label">Lever</th><th class="meta-label">FY27 Impact</th><th class="meta-label">Confidence</th><th class="meta-label">Incr. Impact</th></tr>';
+
+  thead.innerHTML = r1 + r2;
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+
+  // Outcome metric row — at the top
+  const outRow = document.createElement('tr');
+  outRow.className = 'gantt-swim outcome';
+  let outHtml = '<td style="font-weight:800; font-size:12px;">Outcome Metric</td>';
+  OUTCOME.forEach((o, qi) => {
+    outHtml += `<td colspan="3" style="text-align:center; border-left: ${qi > 0 ? '2px solid #0A8080' : 'none'}; padding: 8px 4px;">`;
+    if (o.gnarr === 'TBD') {
+      outHtml += '<span class="outcome-val" style="color:#999;">TBD</span>';
+    } else {
+      outHtml += `<span class="outcome-val">${o.gnarr}</span><br><span class="outcome-yoy">${o.yoy}</span><br><span class="outcome-delta">${o.delta}</span>`;
+    }
+    outHtml += '</td>';
+  });
+  outHtml += '<td></td><td style="text-align:center; padding: 8px 4px;"><span class="outcome-val">$70.8M</span><br><span class="outcome-yoy">26% YoY</span><br><span class="outcome-delta">+$11.6M vs baseline</span></td><td></td>';
+  outRow.innerHTML = outHtml;
+  tbody.appendChild(outRow);
+
+  // Render each section
+  ['rd', 'gtm'].forEach(sectionKey => {
+    const section = data[sectionKey];
+    // Swim lane header
+    const swimRow = document.createElement('tr');
+    swimRow.className = `gantt-swim ${sectionKey}`;
+    swimRow.innerHTML = `<td colspan="${12 + 4}">${section.label}</td>`;
+    tbody.appendChild(swimRow);
+
+    section.groups.forEach(group => {
+      // Subgroup header
+      const sgRow = document.createElement('tr');
+      sgRow.className = 'gantt-subgroup';
+      sgRow.innerHTML = `<td colspan="${12 + 4}">${group.name}</td>`;
+      tbody.appendChild(sgRow);
+
+      // Render summary input rows first if the group has them
+      if (group.summaryInputs) {
+        group.summaryInputs.forEach(si => {
+          const tr = document.createElement('tr');
+          tr.className = 'summary-input-row';
+          const nameTd = document.createElement('td');
+          nameTd.className = 'gantt-name summary-input-name';
+          nameTd.textContent = si.label;
+          tr.appendChild(nameTd);
+          for (let m = 0; m < 12; m++) {
+            const td = document.createElement('td');
+            td.className = 'gantt-month' + ((m % 3 === 0) ? ' q-start' : '');
+            tr.appendChild(td);
+          }
+          const leverTd = document.createElement('td');
+          leverTd.className = 'gantt-meta';
+          const pill = document.createElement('span');
+          pill.className = `lever-pill ${si.lever}`;
+          const lLabels = { firmacq: 'Firm Acq', freq: 'Freq', cvr: 'CvR', acv: 'ACV' };
+          pill.textContent = lLabels[si.lever];
+          leverTd.appendChild(pill);
+          tr.appendChild(leverTd);
+          const impTd = document.createElement('td');
+          impTd.className = 'gantt-meta';
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.value = si.impact || '';
+          inp.placeholder = '$0.0M';
+          impTd.appendChild(inp);
+          // Register for waterfall + confidence summation
+          summaryImpactInputs.push({ input: inp, lever: si.lever, conf: 'Med' });
+          inp.addEventListener('input', () => { renderWaterfall(); renderConfSummary(); });
+          tr.appendChild(impTd);
+          const confTd = document.createElement('td');
+          confTd.className = 'gantt-meta';
+          tr.appendChild(confTd);
+          const incrTd = document.createElement('td');
+          incrTd.className = 'gantt-meta';
+          tr.appendChild(incrTd);
+          tbody.appendChild(tr);
+        });
+      }
+
+      group.items.forEach(item => {
+        const tr = document.createElement('tr');
+        // Name cell
+        const nameTd = document.createElement('td');
+        nameTd.className = 'gantt-name' + (item.indent ? ' gantt-name-indent' : '');
+        nameTd.textContent = item.name;
+        nameTd.title = item.name;
+        tr.appendChild(nameTd);
+
+        // Collect bar elements for this row so lever change can update them
+        const bars = [];
+
+        // Month cells — bar runs from item.s through end of FY (11)
+        for (let m = 0; m < 12; m++) {
+          const td = document.createElement('td');
+          td.className = 'gantt-month' + ((m % 3 === 0) ? ' q-start' : '');
+          if (m >= item.s) {
+            const bar = document.createElement('div');
+            bar.className = `gantt-bar ${item.lever}`;
+            // Show launch date on the first cell of the bar
+            if (m === item.s) {
+              bar.textContent = item.d;
+            }
+            td.appendChild(bar);
+            bars.push(bar);
+          }
+          tr.appendChild(td);
+        }
+
+        // Lever column
+        const leverTd = document.createElement('td');
+        leverTd.className = 'gantt-meta';
+        if (!item.noLever) {
+          const leverSel = document.createElement('select');
+          leverSel.className = 'lever-select';
+          const leverOptions = [
+            { value: 'firmacq', label: 'Firm Acq' },
+            { value: 'freq', label: 'Freq' },
+            { value: 'cvr', label: 'CvR' },
+            { value: 'acv', label: 'ACV' },
+            { value: 'nonpayroll', label: 'Non-Payroll' },
+            { value: 'dash', label: '—' },
+          ];
+          leverOptions.forEach(opt => {
+            const o = document.createElement('option');
+            o.value = opt.value;
+            o.textContent = opt.label;
+            if (opt.value === item.lever) o.selected = true;
+            leverSel.appendChild(o);
+          });
+          const leverColors = { firmacq: '#2E86AB', freq: '#7B2D8B', cvr: '#F18F01', acv: '#2CA58D', nonpayroll: '#C0C0C0', dash: '#C0C0C0' };
+          function updateLeverStyle() {
+            const v = leverSel.value;
+            leverSel.style.color = leverColors[v];
+            leverSel.style.fontWeight = '700';
+            leverSel.style.borderColor = leverColors[v];
+            bars.forEach(bar => {
+              bar.className = `gantt-bar ${v}`;
+            });
+          }
+          updateLeverStyle();
+          leverSel.addEventListener('change', updateLeverStyle);
+          leverTd.appendChild(leverSel);
+        }
+        tr.appendChild(leverTd);
+
+        // Impact column
+        const impTd = document.createElement('td');
+        impTd.className = 'gantt-meta';
+        if (!item.noImpact) {
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.value = item.impact;
+          impTd.appendChild(inp);
+          // Register for waterfall + confidence summation
+          const leverRef = leverTd.querySelector('select');
+          const entry = {
+            input: inp,
+            getLever: () => leverRef ? leverRef.value : item.lever,
+            getConf: () => item._confSel ? item._confSel.value : item.conf,
+          };
+          impactInputs.push(entry);
+          inp.addEventListener('input', () => { renderWaterfall(); renderConfSummary(); });
+          if (leverRef) leverRef.addEventListener('change', () => { renderWaterfall(); renderConfSummary(); });
+        }
+        tr.appendChild(impTd);
+
+        // Confidence select
+        const confTd = document.createElement('td');
+        confTd.className = 'gantt-meta';
+        const sel = document.createElement('select');
+        ['High','Med','Low'].forEach(opt => {
+          const o = document.createElement('option');
+          o.value = opt; o.textContent = opt;
+          if (opt === item.conf) o.selected = true;
+          sel.appendChild(o);
+        });
+        function updateConfColor() {
+          sel.style.color = sel.value === 'High' ? '#2CA58D' : sel.value === 'Med' ? '#D4941A' : '#F45D48';
+          sel.style.fontWeight = '700';
+        }
+        updateConfColor();
+        item._confSel = sel; // store ref for confidence summation
+        sel.addEventListener('change', () => { updateConfColor(); renderConfSummary(); });
+        confTd.appendChild(sel);
+        tr.appendChild(confTd);
+
+        // Incremental Impact column (AZ value from spreadsheet)
+        const incrTd = document.createElement('td');
+        incrTd.className = 'gantt-meta';
+        if (item.sz) {
+          incrTd.textContent = '$' + (item.sz / 1e6).toFixed(1) + 'M';
+          incrTd.style.cssText = 'text-align:center; font-size:11px; font-weight:700; color:#333;';
+        }
+        tr.appendChild(incrTd);
+
+        tbody.appendChild(tr);
+      });
+
+    });
+  });
+
+  table.appendChild(tbody);
+  wrapper.appendChild(table);
+}
+
+function renderConfSummary() {
+  const sums = { High: 0, Med: 0, Low: 0 };
+  impactInputs.forEach(entry => {
+    const conf = entry.getConf();
+    const val = parseImpact(entry.input.value);
+    if (sums[conf] !== undefined) sums[conf] += val;
+  });
+  summaryImpactInputs.forEach(entry => {
+    const conf = entry.conf;
+    const val = parseImpact(entry.input.value);
+    if (sums[conf] !== undefined) sums[conf] += val;
+  });
+  const total = sums.High + sums.Med + sums.Low;
+  const container = document.getElementById('conf-summary');
+  container.innerHTML = `
+    <div class="conf-card high">
+      <div class="conf-label">High Confidence</div>
+      <div class="conf-value">$${sums.High.toFixed(1)}M</div>
+      <div class="conf-sub">${total > 0 ? Math.round((sums.High / total) * 100) : 0}% of incremental</div>
+    </div>
+    <div class="conf-card med">
+      <div class="conf-label">Medium Confidence</div>
+      <div class="conf-value">$${sums.Med.toFixed(1)}M</div>
+      <div class="conf-sub">${total > 0 ? Math.round((sums.Med / total) * 100) : 0}% of incremental</div>
+    </div>
+    <div class="conf-card low">
+      <div class="conf-label">Low Confidence</div>
+      <div class="conf-value">$${sums.Low.toFixed(1)}M</div>
+      <div class="conf-sub">${total > 0 ? Math.round((sums.Low / total) * 100) : 0}% of incremental</div>
+    </div>
+  `;
+}
+
+// ---- Initiative Impact Gantt (Section 3b) ----
+// SOURCE: Operator Sandbox (Q4.FY26) tab → range AR26:AZ63
+// Filtered to Metric ∈ {Firm Acquisition, Frequency, ACV} AND Lift per Month (col AV) > 0
+// start = month index: 0=May'26, 1=Jun, 2=Jul, 3=Aug, 4=Sep, 5=Oct, 6=Nov, 7=Dec, 8=Jan'27, 9=Feb, 10=Mar, 11=Apr
+// impact = col AZ (FY27 GNARR Impact in dollars)
+// conf   = col AW (Confidence)
+// dri    = col AR (Primary DRI)
+const LEVER_GROUPS = [
+  {
+    key: 'firmacq', label: 'Firm Acquisition', color: '#2E86AB',
+    items: [
+      { name: 'Partner (Firm) Recruit',              dri: 'GTM',     start: 0,  impact: 1671374 , conf: 'Medium' },
+      { name: 'Practice Mgmt Integrations',          dri: 'Product', start: 0,  impact: 128567  , conf: 'Medium' },
+      { name: 'De-Dupe / SSO',                       dri: 'Product', start: 1,  impact: 120475  , conf: 'Medium' },
+      { name: 'MarTech Infra – Activation Nurture',  dri: 'Product', start: 3,  impact: 238465  , conf: 'Medium' },
+      { name: 'Pro Dashboard – First Time Use',      dri: 'Product', start: 5,  impact: 75794   , conf: 'Medium' },
+    ]
+  },
+  {
+    key: 'freq', label: 'Frequency (Adds/Firm)', color: '#7B2D8B',
+    items: [
+      { name: 'Integrated Marketing Campaigns',      dri: 'GTM',     start: 0,  impact: 2089078 , conf: 'High'   },
+      { name: 'Partner Lifecycle Model',             dri: 'GTM',     start: 0,  impact: 522269  , conf: 'Medium' },
+      { name: 'Firm Communications',                 dri: 'Product', start: 0,  impact: 156681  , conf: 'Medium' },
+      { name: 'Roles & Permissions',                 dri: 'Product', start: 1,  impact: 242838  , conf: 'Medium' },
+      { name: 'Gumloop Agents for Firms',            dri: 'GTM',     start: 1,  impact: 1214188 , conf: 'Low'    },
+      { name: 'Pro Dashboard – Ongoing Use',         dri: 'Product', start: 3,  impact: 197139  , conf: 'Medium' },
+      { name: 'Partner Support',                     dri: 'GTM',     start: 3,  impact: 591417  , conf: 'Low'    },
+      { name: 'Guideline Pro Integration (Payroll)', dri: 'Product', start: 3,  impact: 197139  , conf: 'Low'    },
+      { name: 'Accountant-Grade Gus',                dri: 'Product', start: 4,  impact: 178633  , conf: 'Medium' },
+      { name: 'Partner Onboarding & Enablement',     dri: 'GTM',     start: 4,  impact: 357266  , conf: 'Low'    },
+      { name: 'Program Benefits',                    dri: 'GTM',     start: 5,  impact: 794367  , conf: 'Low'    },
+      { name: 'Bulk Deal Infrastructure',            dri: 'GTM',     start: 5,  impact: 1112114 , conf: 'Low'    },
+      { name: 'GTM Orchestration Layer',             dri: 'Product', start: 7,  impact: 238250  , conf: 'Low'    },
+      { name: 'AI-Driven Workflows: Payroll',        dri: 'Product', start: 10, impact: 53630   , conf: 'Medium' },
+      { name: 'Task Agent MVP via Gus',              dri: 'Product', start: 10, impact: 53630   , conf: 'Medium' },
+    ]
+  },
+  {
+    key: 'acv', label: 'ACV / Mix', color: '#2CA58D',
+    items: [
+      { name: 'Time Tracking Roadmap Impact',        dri: 'Product', start: 0,  impact: 236933  , conf: 'High'   },
+      { name: 'Full Platform Selling Payroll Add-Ons', dri: 'GTM',   start: 0,  impact: 118467  , conf: 'High'   },
+      { name: 'Full Platform Selling (New Business - Premium/Plus)', dri: 'GTM', start: 3, impact: 944108, conf: 'Medium' },
+      { name: 'CLM Triggers & Promos',               dri: 'Product', start: 4,  impact: 217051  , conf: 'Medium' },
+    ]
+  },
+];
+
+const IG_MONTHS = ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+const IG_QTR    = ["Q1'27","Q2'27","Q3'27","Q4'27"];
+
+function fmtImpactVal(v) {
+  if (!v) return '—';
+  const m = v / 1e6;
+  return '$' + (m < 1 ? m.toFixed(1) : m.toFixed(1)) + 'm';
+}
+
+function buildInitiativeGantt() {
+  const wrap = document.getElementById('initiative-gantt-wrap');
+  const confStyle = {
+    High:   { color: '#1A7A4C', bg: '#E8F7F0' },
+    Medium: { color: '#B07000', bg: '#FFF8E6' },
+    Low:    { color: '#C0392B', bg: '#FFF0EE' },
+  };
+  const driStyle = {
+    Product: { color: '#5B3FA0', bg: '#F0ECF9' },
+    GTM:     { color: '#0A6060', bg: '#E0F5F5' },
+  };
+
+  const table = document.createElement('table');
+  table.style.cssText = 'width:100%; border-collapse:collapse; font-size:12px; table-layout:fixed;';
+
+  // Colgroup
+  const cg = document.createElement('colgroup');
+  cg.innerHTML = '<col style="width:210px">' +
+    IG_MONTHS.map(() => '<col style="width:38px">').join('') +
+    '<col style="width:82px"><col style="width:68px"><col style="width:76px">';
+  table.appendChild(cg);
+
+  // Header rows
+  const thead = document.createElement('thead');
+  // Row 1: Q labels
+  let r1 = '<tr style="background:#1D2F2F;">';
+  r1 += '<th style="padding:8px 14px; text-align:left; color:#9BB; font-size:10px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; border-bottom:none;"></th>';
+  IG_QTR.forEach(q => {
+    r1 += `<th colspan="3" style="padding:7px 4px; text-align:center; color:#DDD; font-size:12px; font-weight:800; border-left:2px solid #2A4040; border-bottom:none;">${q}</th>`;
+  });
+  r1 += '<th style="border-bottom:none;"></th><th style="border-bottom:none;"></th><th style="border-bottom:none;"></th></tr>';
+
+  // Row 2: Month labels + meta labels
+  let r2 = '<tr style="background:#1D2F2F;">';
+  r2 += '<th style="padding:4px 14px; text-align:left; color:#6A8A8A; font-size:10px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; border-bottom:2px solid #0A8080;">Initiative</th>';
+  IG_MONTHS.forEach((m, i) => {
+    const qStart = i % 3 === 0;
+    r2 += `<th style="padding:4px 2px; text-align:center; color:${qStart ? '#8BB' : '#4A6A6A'}; font-size:9px; font-weight:600; border-bottom:2px solid #0A8080;${qStart ? ' border-left:2px solid #2A4040;' : ''}">${m}</th>`;
+  });
+  r2 += '<th style="padding:4px 4px; text-align:center; color:#6A8A8A; font-size:9px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; border-bottom:2px solid #0A8080;">Confidence</th>';
+  r2 += '<th style="padding:4px 4px; text-align:center; color:#6A8A8A; font-size:9px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; border-bottom:2px solid #0A8080;">DRI</th>';
+  r2 += '<th style="padding:4px 4px; text-align:center; color:#6A8A8A; font-size:9px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; border-bottom:2px solid #0A8080;">FY27 Impact</th>';
+  r2 += '</tr>';
+  thead.innerHTML = r1 + r2;
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+
+  // Dynamic Outcome Metric row — pulls from SD.forecast.fy27 (matches Forecast toggle in Section 1)
+  const outRow = document.createElement('tr');
+  outRow.style.cssText = 'background:#E0F2F2; border-top:3px solid #0A8080;';
+  const qKeys = ['q1','q2','q3','q4'];
+  let outHtml = '<td style="padding:8px 14px; font-weight:800; font-size:12px; color:#0A8080; white-space:nowrap;">Outcome Metric</td>';
+  qKeys.forEach((p, i) => {
+    const gnarr  = SD.forecast.fy27[p].gnarr / 1000;
+    const yoy    = SD.forecast.fy27yoy[p].gnarr;
+    const delta  = (SD.forecast.fy27[p].gnarr - SD.baseline.fy27[p].gnarr) / 1000;
+    const dStr   = (delta >= 0 ? '+' : '') + '$' + delta.toFixed(1) + 'M vs baseline';
+    outHtml += `<td colspan="3" style="text-align:center; padding:8px 4px; border-left:2px solid #0A8080;">
+      <span style="font-size:13px; font-weight:800; color:#0A8080;">$${gnarr.toFixed(1)}M</span><br>
+      <span style="font-size:10px; color:#555;">${yoy} YoY</span><br>
+      <span style="font-size:9px; color:#2CA58D; font-weight:600;">${dStr}</span>
+    </td>`;
+  });
+  const fyGnarr = SD.forecast.fy27.fy.gnarr / 1000;
+  const fyYoy   = SD.forecast.fy27yoy.fy.gnarr;
+  const fyDelta = (SD.forecast.fy27.fy.gnarr - SD.baseline.fy27.fy.gnarr) / 1000;
+  outHtml += `<td style="text-align:center; padding:8px 6px; border-left:1px solid #B5DBDB;">
+    <span style="font-size:13px; font-weight:800; color:#0A8080;">$${fyGnarr.toFixed(1)}M</span><br>
+    <span style="font-size:10px; color:#555;">${fyYoy} YoY</span><br>
+    <span style="font-size:9px; color:#2CA58D; font-weight:600;">+$${fyDelta.toFixed(1)}M vs baseline</span>
+  </td><td></td><td></td>`;
+  outRow.innerHTML = outHtml;
+  tbody.appendChild(outRow);
+
+  LEVER_GROUPS.forEach(group => {
+    // Group header row
+    const gRow = document.createElement('tr');
+    gRow.style.cssText = `background:${group.color}18; border-top:2px solid ${group.color};`;
+    gRow.innerHTML = `<td colspan="${12 + 4}" style="padding:7px 14px; font-weight:800; font-size:13px; color:${group.color};">${group.label}</td>`;
+    tbody.appendChild(gRow);
+
+    group.items.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid #F0F0F0';
+      tr.onmouseenter = () => { tr.style.background = '#F5FBFB'; };
+      tr.onmouseleave = () => { tr.style.background = ''; };
+
+      // Name cell
+      const nameTd = document.createElement('td');
+      nameTd.style.cssText = 'padding:8px 14px; font-size:11px; color:#333; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+      nameTd.title = item.name;
+      nameTd.textContent = item.name;
+      tr.appendChild(nameTd);
+
+      // Month cells
+      for (let m = 0; m < 12; m++) {
+        const td = document.createElement('td');
+        const qStart = m % 3 === 0;
+        td.style.cssText = `padding:3px 1px; height:28px;${qStart ? ' border-left:2px solid #EBEBEB;' : ''}`;
+        if (m >= item.start) {
+          const bar = document.createElement('div');
+          const isFirst = m === item.start;
+          const isLast  = m === 11;
+          bar.style.cssText = `height:20px; background:${group.color}; opacity:0.82;` +
+            `border-radius:${isFirst ? '3px' : '0'} ${isLast ? '3px' : '0'} ${isLast ? '3px' : '0'} ${isFirst ? '3px' : '0'};`;
+          td.appendChild(bar);
+        }
+        tr.appendChild(td);
+      }
+
+      // Confidence
+      const confTd = document.createElement('td');
+      confTd.style.cssText = 'padding:8px 6px; text-align:center;';
+      const cs = confStyle[item.conf] || confStyle.Medium;
+      confTd.innerHTML = `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; color:${cs.color}; background:${cs.bg};">${item.conf}</span>`;
+      tr.appendChild(confTd);
+
+      // DRI
+      const driTd = document.createElement('td');
+      driTd.style.cssText = 'padding:8px 6px; text-align:center;';
+      const ds = driStyle[item.dri] || { color: '#666', bg: '#F0F0F0' };
+      driTd.innerHTML = `<span style="display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; color:${ds.color}; background:${ds.bg};">${item.dri}</span>`;
+      tr.appendChild(driTd);
+
+      // FY27 Impact column (AZ value)
+      const impactTd = document.createElement('td');
+      impactTd.style.cssText = 'padding:8px 6px; text-align:center; font-size:11px; font-weight:700; color:#333;';
+      if (item.impact) {
+        impactTd.textContent = '$' + (item.impact / 1e6).toFixed(1) + 'M';
+      }
+      tr.appendChild(impactTd);
+
+      tbody.appendChild(tr);
+    });
+  });
+
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+
+  // Confidence summary cards
+  // SOURCE: Operator Sandbox (Q4.FY26) tab → range AU1:AV3 (all three tiers pulled directly)
+  const confHigh  = 2444477;
+  const confMed   = 4800654;
+  const confLow   = 4504741;
+  const confTotal = confHigh + confMed + confLow;
+  const pct = v => confTotal > 0 ? Math.round((v / confTotal) * 100) : 0;
+  const fmt = v => '$' + (v / 1e6).toFixed(1) + 'm';
+
+  document.getElementById('initiative-conf-summary').innerHTML = `
+    <div class="conf-card high">
+      <div class="conf-label">High Confidence</div>
+      <div class="conf-value">${fmt(confHigh)}</div>
+      <div class="conf-sub">${pct(confHigh)}% of incremental</div>
+    </div>
+    <div class="conf-card med">
+      <div class="conf-label">Medium Confidence</div>
+      <div class="conf-value">${fmt(confMed)}</div>
+      <div class="conf-sub">${pct(confMed)}% of incremental</div>
+    </div>
+    <div class="conf-card low">
+      <div class="conf-label">Low Confidence</div>
+      <div class="conf-value">${fmt(confLow)}</div>
+      <div class="conf-sub">${pct(confLow)}% of incremental</div>
+    </div>
+  `;
+}
+
+renderWaterfall();
+buildInitiativeGantt();
+
+function downloadPDF() {
+  // Snapshot all current input/select values into inline attributes so print captures them
+  document.querySelectorAll('.gantt-meta input, .gantt-meta select, .lever-select').forEach(el => {
+    if (el.tagName === 'SELECT') {
+      el.querySelectorAll('option').forEach(o => {
+        o.selected = (o.value === el.value);
+      });
+    } else {
+      el.setAttribute('value', el.value);
+    }
+  });
+  // Snapshot contenteditable notes
+  const notes = document.querySelector('.user-notes');
+  if (notes) notes.setAttribute('data-snapshot', notes.innerHTML);
+
+  window.print();
+}
+</script>
+
+</body>
+</html>
