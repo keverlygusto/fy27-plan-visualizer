@@ -832,6 +832,30 @@
   .s-yc  { background: #E4F4F4; text-align: center; vertical-align: middle; padding: 8px 6px; border-left: 2px solid #C0DEDE; }
   .s-yv  { font-size: 17px; font-weight: 800; color: #0A8080; }
   .s-yv.neg { color: #D44040; }
+
+  /* Expandable parent/child rows (New ACV, GNARR) */
+  .s-parent-row { cursor: pointer; user-select: none; }
+  .s-parent-row:focus-visible { outline: 2px solid #0A8080; outline-offset: -2px; }
+  .s-parent-row:hover .s-mc-parent { color: #0A8080; }
+  .s-caret {
+    display: inline-block; width: 12px; margin-right: 6px;
+    font-size: 10px; color: #8AA; transition: transform 0.15s ease;
+    transform-origin: 50% 50%;
+  }
+  .s-parent-row.s-expanded .s-caret { transform: rotate(90deg); color: #0A8080; }
+  .s-child-row { background: #FBFDFD; }
+  .s-child-row:hover .s-mc,
+  .s-child-row:hover .s-dc { background: #EEF8F8; }
+  .s-mc-child {
+    padding-left: 38px !important;
+    font-weight: 500 !important;
+    color: #667 !important;
+    font-size: 12px !important;
+    font-style: italic;
+  }
+  .s-child-row .s-v { font-size: 12px; font-weight: 500; color: #445; }
+  .s-child-row .s-ann .s-v { font-weight: 700; }
+  .s-child-row .s-yv { font-size: 14px; font-weight: 700; opacity: 0.8; }
 </style>
 </head>
 <body>
@@ -855,11 +879,13 @@
       <span class="num">1</span> Overall Forecast
     </div>
     <div style="display:flex; align-items:center; gap:12px;">
-      <div class="toggle-group">
-        <button class="toggle-btn active"   id="btn-baseline" onclick="setScenario('baseline')">BASELINE</button>
-        <button class="toggle-btn inactive" id="btn-forecast" onclick="setScenario('forecast')">FORECAST</button>
+      <!-- Baseline/Forecast toggle hidden from UX for now; forecast-only view.
+           To restore: delete style="display:none" below. Baseline data stays intact in SD/CHILD_DATA. -->
+      <div class="toggle-group" style="display:none">
+        <button class="toggle-btn inactive" id="btn-baseline" onclick="setScenario('baseline')">BASELINE</button>
+        <button class="toggle-btn active"   id="btn-forecast" onclick="setScenario('forecast')">FORECAST</button>
       </div>
-      <span class="summary-subtitle">Accountant Channel &nbsp;|&nbsp; FY26 vs FY27 &nbsp;|&nbsp; <em id="scenario-label">Baseline Scenario</em></span>
+      <span class="summary-subtitle">Accountant Channel &nbsp;|&nbsp; FY26 vs FY27 &nbsp;|&nbsp; <em id="scenario-label">Forecast w/ Initiatives</em></span>
     </div>
   </div>
   <div class="summary-card">
@@ -984,8 +1010,8 @@
 //   ID: 1lv4RwsOXVHgtbaYAR1AISrK0o1w_OL_T6gthMypGSfw
 //   Tab: "FY27 Scenarios" (gid=835073805)
 //
-//   BASELINE scenario  → range H4:BI32  ("FY27 Baseline" block)
-//   FORECAST scenario  → range H35:BI63 ("FY27 Financial Forecast" block)
+//   BASELINE scenario  → range H4:BI36  ("FY27 Baseline" block)
+//   FORECAST scenario  → range H39:BI67 ("FY27 Financial Forecast" block)
 //
 //   For each range, pull the RIGHT-HAND summary columns only:
 //     • Monthly columns (cols I–BF) are ignored
@@ -1000,12 +1026,12 @@
 //         intentionally excluded from this view.
 //
 // SECTION 2 — Waterfall
-//   FY26_BASE:        "FY27 Scenarios" tab → Baseline block (H4:BI32), FY2026 annual GNARR ($k) ÷ 1000
+//   FY26_BASE:        "FY27 Scenarios" tab → Baseline block (H4:BI36), FY2026 annual GNARR ($k) ÷ 1000
 //   Baseline Growth:  FY27 Baseline annual GNARR minus FY26 Base — both from same range
 //   Firm Acquisition: Operator Sandbox (Q4.FY26) tab → AW1:AX1 (dollar total, ÷ 1,000,000)
 //   ACV / Mix:        Operator Sandbox (Q4.FY26) tab → AW3:AX3 (dollar total, ÷ 1,000,000)
 //   Frequency:        PLUG — FY27 Forecast GNARR minus all other bars
-//   FY27 total:       "FY27 Scenarios" tab → Forecast block (H35:BI63), FY2027 annual GNARR ($k) ÷ 1000
+//   FY27 total:       "FY27 Scenarios" tab → Forecast block (H39:BI67), FY2027 annual GNARR ($k) ÷ 1000
 //
 // SECTION 3 — Gantt / Roadmap
 //   Initiative names, launch dates, swim lane structure:
@@ -1025,7 +1051,7 @@
 //              Opp to Add CvR → cvr | ACV → acv
 //   Outcome Metric row (quarterly GNARR + YoY + delta vs baseline):
 //     Derived from "FY27 Financial Forecast" section of FY27 Scenarios tab
-//     (same range H35:BI63, GNARR quarterly values)
+//     (same range H39:BI67, GNARR quarterly values)
 //
 // SECTION 4 — Risks & Opportunities
 //   Risk card content:
@@ -1043,8 +1069,20 @@ const METRICS = [
   { key: 'oppsPerFirm', label: 'Opps / Firm',            fmt: 'dec2'   },
   { key: 'adds',        label: 'Adds',                   fmt: 'int'    },
   { key: 'addsPerFirm', label: 'Adds / Firm',            fmt: 'dec2'   },
-  { key: 'acv',         label: 'New ACV',                fmt: 'dollar' },
-  { key: 'gnarr',       label: 'GNARR ($k)',             fmt: 'gnarr'  },
+  {
+    key: 'acv', label: 'New ACV', fmt: 'dollar',
+    children: [
+      { key: 'acvTier',  label: 'Tier ACV',   fmt: 'dollar' },
+      { key: 'acvAddon', label: 'Add-on ACV', fmt: 'dollar' },
+    ],
+  },
+  {
+    key: 'gnarr', label: 'GNARR ($k)', fmt: 'gnarr',
+    children: [
+      { key: 'gnarrTier',  label: 'Tier GNARR ($k)',   fmt: 'gnarr' },
+      { key: 'gnarrAddon', label: 'Add-on GNARR ($k)', fmt: 'gnarr' },
+    ],
+  },
 ];
 
 const SD = {
@@ -1053,29 +1091,29 @@ const SD = {
       q1: { firms:20430, opps:13534, oppsPerFirm:0.66, adds:10026, addsPerFirm:0.49, acv:1135, gnarr:11381 },
       q2: { firms:21289, opps:12188, oppsPerFirm:0.57, adds:9656,  addsPerFirm:0.45, acv:1168, gnarr:11277 },
       q3: { firms:22640, opps:20791, oppsPerFirm:0.92, adds:16452, addsPerFirm:0.73, acv:1225, gnarr:20156 },
-      q4: { firms:23353, opps:14804, oppsPerFirm:0.63, adds:11576, addsPerFirm:0.50, acv:1174, gnarr:13582 },
+      q4: { firms:23353, opps:14804, oppsPerFirm:0.63, adds:11576, addsPerFirm:0.50, acv:1173, gnarr:13582 },
       fy: { firms:23353, opps:61317, oppsPerFirm:2.63, adds:47710, addsPerFirm:2.04, acv:1182, gnarr:56396 },
     },
     fy26yoy: {
       q1: { firms:'+18%', opps:'+15%', oppsPerFirm:'-3%',  adds:'+5%',  addsPerFirm:'-11%', acv:'+10%', gnarr:'+16%' },
       q2: { firms:'+19%', opps:'+3%',  oppsPerFirm:'-13%', adds:'+7%',  addsPerFirm:'-10%', acv:'+11%', gnarr:'+19%' },
       q3: { firms:'+19%', opps:'+8%',  oppsPerFirm:'-9%',  adds:'+0%',  addsPerFirm:'-16%', acv:'+20%', gnarr:'+20%' },
-      q4: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-7%',  adds:'+8%',  addsPerFirm:'-9%',  acv:'+1%',  gnarr:'+8%'  },
-      fy: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-8%',  adds:'+4%',  addsPerFirm:'-12%', acv:'+11%', gnarr:'+16%' },
+      q4: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-7%',  adds:'+6%',  addsPerFirm:'-10%', acv:'+1%',  gnarr:'+7%'  },
+      fy: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-8%',  adds:'+4%',  addsPerFirm:'-12%', acv:'+11%', gnarr:'+15%' },
     },
     fy27: {
-      q1: { firms:23903, opps:13805, oppsPerFirm:0.58, adds:9926,  addsPerFirm:0.42, acv:1215, gnarr:12064 },
-      q2: { firms:24482, opps:12310, oppsPerFirm:0.50, adds:9849,  addsPerFirm:0.40, acv:1215, gnarr:11954 },
-      q3: { firms:25583, opps:21623, oppsPerFirm:0.84, adds:16945, addsPerFirm:0.66, acv:1250, gnarr:21365 },
-      q4: { firms:26389, opps:14804, oppsPerFirm:0.55, adds:11692, addsPerFirm:0.45, acv:1196, gnarr:13989 },
-      fy: { firms:26389, opps:62542, oppsPerFirm:2.37, adds:48412, addsPerFirm:1.83, acv:1225, gnarr:59372 },
+      q1: { firms:23831, opps:13841, oppsPerFirm:0.58, adds:9890,  addsPerFirm:0.42, acv:1216, gnarr:12028 },
+      q2: { firms:24457, opps:12256, oppsPerFirm:0.50, adds:9824,  addsPerFirm:0.40, acv:1220, gnarr:11988 },
+      q3: { firms:25674, opps:21551, oppsPerFirm:0.84, adds:16935, addsPerFirm:0.66, acv:1256, gnarr:21265 },
+      q4: { firms:26398, opps:14784, oppsPerFirm:0.56, adds:11689, addsPerFirm:0.44, acv:1194, gnarr:13952 },
+      fy: { firms:26398, opps:62432, oppsPerFirm:2.37, adds:48338, addsPerFirm:1.83, acv:1225, gnarr:59233 },
     },
     fy27yoy: {
       q1: { firms:'+17%', opps:'+2%',  oppsPerFirm:'-12%', adds:'-1%', addsPerFirm:'-15%', acv:'+7%', gnarr:'+6%' },
       q2: { firms:'+15%', opps:'+1%',  oppsPerFirm:'-12%', adds:'+2%', addsPerFirm:'-11%', acv:'+4%', gnarr:'+6%' },
       q3: { firms:'+13%', opps:'+4%',  oppsPerFirm:'-9%',  adds:'+3%', addsPerFirm:'-9%',  acv:'+2%', gnarr:'+6%' },
       q4: { firms:'+13%', opps:'+0%',  oppsPerFirm:'-12%', adds:'+1%', addsPerFirm:'-11%', acv:'+2%', gnarr:'+3%' },
-      fy: { firms:'+13%', opps:'+2%',  oppsPerFirm:'-10%', adds:'+1%', addsPerFirm:'-11%', acv:'+4%', gnarr:'+5%' },
+      fy: { firms:'+13%', opps:'+2%',  oppsPerFirm:'-10%', adds:'+1%', addsPerFirm:'-10%', acv:'+4%', gnarr:'+5%' },
     },
   },
 
@@ -1084,15 +1122,15 @@ const SD = {
       q1: { firms:20430, opps:13534, oppsPerFirm:0.66, adds:10026, addsPerFirm:0.49, acv:1135, gnarr:11381 },
       q2: { firms:21289, opps:12188, oppsPerFirm:0.57, adds:9656,  addsPerFirm:0.45, acv:1168, gnarr:11277 },
       q3: { firms:22640, opps:20791, oppsPerFirm:0.92, adds:16452, addsPerFirm:0.73, acv:1225, gnarr:20156 },
-      q4: { firms:23353, opps:14804, oppsPerFirm:0.63, adds:11576, addsPerFirm:0.50, acv:1174, gnarr:13582 },
+      q4: { firms:23353, opps:14804, oppsPerFirm:0.63, adds:11576, addsPerFirm:0.50, acv:1173, gnarr:13582 },
       fy: { firms:23353, opps:61317, oppsPerFirm:2.63, adds:47710, addsPerFirm:2.04, acv:1182, gnarr:56396 },
     },
     fy26yoy: {
       q1: { firms:'+18%', opps:'+15%', oppsPerFirm:'-3%',  adds:'+5%',  addsPerFirm:'-11%', acv:'+10%', gnarr:'+16%' },
       q2: { firms:'+19%', opps:'+3%',  oppsPerFirm:'-13%', adds:'+7%',  addsPerFirm:'-10%', acv:'+11%', gnarr:'+19%' },
       q3: { firms:'+19%', opps:'+8%',  oppsPerFirm:'-9%',  adds:'+0%',  addsPerFirm:'-16%', acv:'+20%', gnarr:'+20%' },
-      q4: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-7%',  adds:'+8%',  addsPerFirm:'-9%',  acv:'+1%',  gnarr:'+8%'  },
-      fy: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-8%',  adds:'+4%',  addsPerFirm:'-12%', acv:'+11%', gnarr:'+16%' },
+      q4: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-7%',  adds:'+6%',  addsPerFirm:'-10%', acv:'+1%',  gnarr:'+7%'  },
+      fy: { firms:'+18%', opps:'+9%',  oppsPerFirm:'-8%',  adds:'+4%',  addsPerFirm:'-12%', acv:'+11%', gnarr:'+15%' },
     },
     fy27: {
       q1: { firms:24185, opps:14663, oppsPerFirm:0.61, adds:10949, addsPerFirm:0.45, acv:1225, gnarr:13411 },
@@ -1107,6 +1145,73 @@ const SD = {
       q3: { firms:'+17%', opps:'+23%', oppsPerFirm:'+4%', adds:'+22%', addsPerFirm:'+4%', acv:'+6%',  gnarr:'+29%' },
       q4: { firms:'+18%', opps:'+22%', oppsPerFirm:'+4%', adds:'+25%', addsPerFirm:'+6%', acv:'+5%',  gnarr:'+31%' },
       fy: { firms:'+18%', opps:'+18%', oppsPerFirm:'0%',  adds:'+18%', addsPerFirm:'0%',  acv:'+6%',  gnarr:'+26%' },
+    },
+  },
+};
+
+// Child-row data: Tier ACV / Add-on ACV / Tier GNARR / Add-on GNARR
+// SOURCE: FY27 Scenarios tab — same ranges as SD (Baseline H4:BI36 / Forecast H39:BI67)
+//         Child rows are currently only displayed in the Forecast view, but baseline values
+//         are stored here too for structural parity with the sheet.
+const CHILD_DATA = {
+  baseline: {
+    fy26: {
+      q1: { acvTier:1085, acvAddon:50,  gnarrTier:10879, gnarrAddon:502  },
+      q2: { acvTier:1072, acvAddon:96,  gnarrTier:10351, gnarrAddon:926  },
+      q3: { acvTier:1056, acvAddon:169, gnarrTier:17375, gnarrAddon:2781 },
+      q4: { acvTier:1032, acvAddon:142, gnarrTier:11942, gnarrAddon:1639 },
+      fy: { acvTier:1059, acvAddon:123, gnarrTier:50547, gnarrAddon:5848 },
+    },
+    fy26yoy: {
+      q1: { acvTier:'+9%',  acvAddon:'+79%',  gnarrTier:'+14%', gnarrAddon:'+87%'  },
+      q2: { acvTier:'+5%',  acvAddon:'+157%', gnarrTier:'+13%', gnarrAddon:'+176%' },
+      q3: { acvTier:'+8%',  acvAddon:'+342%', gnarrTier:'+7%',  gnarrAddon:'+340%' },
+      q4: { acvTier:'-8%',  acvAddon:'+239%', gnarrTier:'-2%',  gnarrAddon:'+261%' },
+      fy: { acvTier:'+3%',  acvAddon:'+233%', gnarrTier:'+7%',  gnarrAddon:'+246%' },
+    },
+    fy27: {
+      q1: { acvTier:1079, acvAddon:137, gnarrTier:10671, gnarrAddon:1357 },
+      q2: { acvTier:1069, acvAddon:151, gnarrTier:10501, gnarrAddon:1487 },
+      q3: { acvTier:1074, acvAddon:182, gnarrTier:18181, gnarrAddon:3083 },
+      q4: { acvTier:1045, acvAddon:149, gnarrTier:12215, gnarrAddon:1737 },
+      fy: { acvTier:1067, acvAddon:159, gnarrTier:51568, gnarrAddon:7665 },
+    },
+    fy27yoy: {
+      q1: { acvTier:'-1%', acvAddon:'+174%', gnarrTier:'-2%', gnarrAddon:'+170%' },
+      q2: { acvTier:'+0%', acvAddon:'+58%',  gnarrTier:'+1%', gnarrAddon:'+61%'  },
+      q3: { acvTier:'+2%', acvAddon:'+8%',   gnarrTier:'+5%', gnarrAddon:'+11%'  },
+      q4: { acvTier:'+1%', acvAddon:'+5%',   gnarrTier:'+2%', gnarrAddon:'+6%'   },
+      fy: { acvTier:'+1%', acvAddon:'+29%',  gnarrTier:'+2%', gnarrAddon:'+31%'  },
+    },
+  },
+  forecast: {
+    fy26: {
+      q1: { acvTier:1085, acvAddon:50,  gnarrTier:10879, gnarrAddon:502  },
+      q2: { acvTier:1072, acvAddon:96,  gnarrTier:10351, gnarrAddon:926  },
+      q3: { acvTier:1056, acvAddon:169, gnarrTier:17375, gnarrAddon:2781 },
+      q4: { acvTier:1032, acvAddon:142, gnarrTier:11942, gnarrAddon:1639 },
+      fy: { acvTier:1059, acvAddon:123, gnarrTier:50547, gnarrAddon:5848 },
+    },
+    fy26yoy: {
+      q1: { acvTier:'+9%',  acvAddon:'+79%',  gnarrTier:'+14%', gnarrAddon:'+87%'  },
+      q2: { acvTier:'+5%',  acvAddon:'+157%', gnarrTier:'+13%', gnarrAddon:'+176%' },
+      q3: { acvTier:'+8%',  acvAddon:'+342%', gnarrTier:'+7%',  gnarrAddon:'+340%' },
+      q4: { acvTier:'-8%',  acvAddon:'+239%', gnarrTier:'-2%',  gnarrAddon:'+261%' },
+      fy: { acvTier:'+3%',  acvAddon:'+233%', gnarrTier:'+7%',  gnarrAddon:'+246%' },
+    },
+    fy27: {
+      q1: { acvTier:1077, acvAddon:148, gnarrTier:11791, gnarrAddon:1620 },
+      q2: { acvTier:1080, acvAddon:162, gnarrTier:11763, gnarrAddon:1768 },
+      q3: { acvTier:1108, acvAddon:187, gnarrTier:22308, gnarrAddon:3772 },
+      q4: { acvTier:1080, acvAddon:147, gnarrTier:15683, gnarrAddon:2135 },
+      fy: { acvTier:1090, acvAddon:165, gnarrTier:61545, gnarrAddon:9295 },
+    },
+    fy27yoy: {
+      q1: { acvTier:'-1%', acvAddon:'+196%', gnarrTier:'+8%',  gnarrAddon:'+223%' },
+      q2: { acvTier:'+1%', acvAddon:'+69%',  gnarrTier:'+14%', gnarrAddon:'+91%'  },
+      q3: { acvTier:'+5%', acvAddon:'+11%',  gnarrTier:'+28%', gnarrAddon:'+36%'  },
+      q4: { acvTier:'+5%', acvAddon:'+4%',   gnarrTier:'+31%', gnarrAddon:'+30%'  },
+      fy: { acvTier:'+3%', acvAddon:'+34%',  gnarrTier:'+22%', gnarrAddon:'+59%'  },
     },
   },
 };
@@ -1149,9 +1254,16 @@ function renderSummary(scenario) {
     </tr>
   </thead><tbody>`;
 
-  METRICS.forEach(m => {
-    html += '<tr>';
-    html += `<td class="s-mc">${m.label}</td>`;
+  METRICS.forEach((m, mi) => {
+    const hasChildren = scenario === 'forecast' && Array.isArray(m.children) && m.children.length > 0;
+    const parentLabel = hasChildren
+      ? `<span class="s-caret" aria-hidden="true">▸</span>${m.label}`
+      : m.label;
+    const parentAttrs = hasChildren
+      ? ` class="s-parent-row" data-parent="${m.key}" role="button" tabindex="0" aria-expanded="false"`
+      : '';
+    html += `<tr${parentAttrs}>`;
+    html += `<td class="s-mc${hasChildren?' s-mc-parent':''}">${parentLabel}</td>`;
     QS.forEach(p => {
       const isAnn = p === 'fy';
       const val = d.fy26[p][m.key], yoy = d.fy26yoy[p][m.key];
@@ -1166,10 +1278,52 @@ function renderSummary(scenario) {
     });
     const fyYoy = d.fy27yoy.fy[m.key];
     html += `<td class="s-yc"><span class="s-yv${sPctCls(fyYoy)==='neg'?' neg':''}">${fyYoy}</span></td></tr>`;
+
+    if (hasChildren) {
+      const cd = CHILD_DATA[scenario];
+      m.children.forEach(c => {
+        html += `<tr class="s-child-row" data-child-of="${m.key}" hidden>`;
+        html += `<td class="s-mc s-mc-child">${c.label}</td>`;
+        QS.forEach(p => {
+          const isAnn = p === 'fy';
+          const val = cd.fy26[p][c.key];
+          const yoy = cd.fy26yoy[p][c.key];
+          const cls = isAnn ? 'neu' : sPctCls(yoy);
+          html += `<td class="s-dc${isAnn?' s-ann':''}"><span class="s-v">${sFmt(val,c.fmt)}</span><span class="s-p ${cls}">${yoy}</span></td>`;
+        });
+        QS.forEach((p, i) => {
+          const isAnn = p === 'fy';
+          const val = cd.fy27[p][c.key];
+          const yoy = cd.fy27yoy[p][c.key];
+          const cls = isAnn ? 'neu' : sPctCls(yoy);
+          html += `<td class="s-dc${isAnn?' s-ann':''}${i===0?' s-fy27-start':''}"><span class="s-v">${sFmt(val,c.fmt)}</span><span class="s-p ${cls}">${yoy}</span></td>`;
+        });
+        const fyYoyC = cd.fy27yoy.fy[c.key];
+        html += `<td class="s-yc"><span class="s-yv${sPctCls(fyYoyC)==='neg'?' neg':''}">${fyYoyC}</span></td></tr>`;
+      });
+    }
   });
 
   html += '</tbody></table>';
-  document.getElementById('summary-table-wrap').innerHTML = html;
+  const wrap = document.getElementById('summary-table-wrap');
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('.s-parent-row').forEach(row => {
+    const toggle = () => {
+      const key = row.dataset.parent;
+      const expanded = row.getAttribute('aria-expanded') === 'true';
+      row.setAttribute('aria-expanded', String(!expanded));
+      row.classList.toggle('s-expanded', !expanded);
+      wrap.querySelectorAll(`.s-child-row[data-child-of="${key}"]`).forEach(cr => {
+        if (expanded) cr.setAttribute('hidden', '');
+        else cr.removeAttribute('hidden');
+      });
+    };
+    row.addEventListener('click', toggle);
+    row.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  });
 }
 
 function setScenario(s) {
@@ -1179,17 +1333,17 @@ function setScenario(s) {
   renderSummary(s);
 }
 
-renderSummary('baseline');
+setScenario('forecast');
 
 // ---- Dynamic Waterfall Chart ----
 // Tracks all impact inputs by lever for bottoms-up summation
 const impactInputs = []; // { input, getLever, getConf } — populated during Gantt build
 const summaryImpactInputs = []; // { input, lever, conf } — for summary rows (Brand in Market)
 
-// SOURCE: "FY27 Scenarios" tab (H4:BI32) → Baseline FY2026 annual GNARR ($k) ÷ 1000
+// SOURCE: "FY27 Scenarios" tab (H4:BI36) → Baseline FY2026 annual GNARR ($k) ÷ 1000
 const FY26_BASE = SD.baseline.fy26.fy.gnarr / 1000;  // = $55.991M
 
-// SOURCE: "FY27 Scenarios" tab — FY27 Baseline annual GNARR minus FY26 Base (H4:BI32, bottom of baseline block)
+// SOURCE: "FY27 Scenarios" tab — FY27 Baseline annual GNARR minus FY26 Base (H4:BI36, bottom of baseline block)
 const ORGANIC = Math.round((SD.baseline.fy27.fy.gnarr - SD.baseline.fy26.fy.gnarr)) / 1000;  // = $3.434M
 
 // SOURCE: Operator Sandbox (Q4.FY26) tab → range AW1:AX3 — lever totals in dollars
@@ -1197,7 +1351,7 @@ const FIRM_ACQ  = 2234676 / 1e6;  // row 1 "Firm Acquisition"               → 
 const ACV_FIXED = 1398091 / 1e6;  // row 3 "ACV"                            → $1.398M
 // Frequency is the plug (computed in renderWaterfall)
 
-// SOURCE: "FY27 Scenarios" tab (H35:BI63) → Forecast FY2027 annual GNARR ($k) ÷ 1000
+// SOURCE: "FY27 Scenarios" tab (H39:BI67) → Forecast FY2027 annual GNARR ($k) ÷ 1000
 const FY27_FCST = SD.forecast.fy27.fy.gnarr / 1000;  // = $69.916M
 const chartHeight = 320;
 
@@ -1293,7 +1447,7 @@ const QUARTERS = [
   { label: "Q3'27", start: 6, span: 3 },
   { label: "Q4'27", start: 9, span: 3 },
 ];
-// SOURCE: FY27 Scenarios tab → "FY27 Financial Forecast" block (H35:BI63)
+// SOURCE: FY27 Scenarios tab → "FY27 Financial Forecast" block (H39:BI67)
 // GNARR ($k) row, Q1–Q4 FY27 quarterly columns ÷ 1000 → displayed as $Xm
 // YoY % = same block's FY27 YoY row; delta vs baseline = Forecast minus Baseline quarterly GNARR
 // Full-year totals: FY27 Financial Forecast FY2027 col ($69.9M) vs Baseline FY2027 col ($59.4M)
