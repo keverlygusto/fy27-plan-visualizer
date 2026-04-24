@@ -533,6 +533,114 @@
   .gantt-bar.nonpayroll { background: #C0C0C0; }
   .gantt-bar.dash { background: #C0C0C0; }
 
+  /* -- Roadmap Acceleration Widget -- */
+  .accel-wrapper {
+    border: 1px solid #EEE;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .accel-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    table-layout: fixed;
+  }
+  .accel-table colgroup .col-name { width: 240px; }
+  .accel-table colgroup .col-month { width: auto; }
+  .accel-table th {
+    padding: 4px 2px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 11px;
+    color: #666;
+    background: white;
+  }
+  .accel-table th.q-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #333;
+    padding-top: 10px;
+  }
+  .accel-table th.month-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: #aaa;
+    border-bottom: 2px solid #0A8080;
+    padding-bottom: 6px;
+  }
+  .accel-table th.name-label {
+    text-align: left;
+    padding-left: 12px;
+    border-bottom: 2px solid #0A8080;
+  }
+  .accel-table th.q-start { border-left: 2px solid #D0D0D0; }
+  .accel-table td {
+    padding: 0;
+    height: 38px;
+    vertical-align: middle;
+    border-bottom: 1px solid #F0F0F0;
+  }
+  .accel-table td.accel-name {
+    padding: 0 12px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #333;
+  }
+  .accel-table td.accel-month { position: relative; }
+  .accel-table td.accel-month.q-start { border-left: 2px solid #E5E5E5; }
+  .bar-original {
+    height: 18px;
+    border-radius: 4px;
+    margin: 0 2px;
+  }
+  .bar-original.firmacq { background: #2E86AB; }
+  .bar-original.freq    { background: #7B2D8B; }
+  .bar-original.cvr     { background: #F18F01; }
+  .bar-original.acv     { background: #2CA58D; }
+  .bar-ghost {
+    height: 18px;
+    border-radius: 4px;
+    margin: 0 2px;
+    border: 1.5px dashed;
+    box-sizing: border-box;
+  }
+  .bar-ghost.firmacq { background: rgba(46, 134, 171, 0.18); border-color: #2E86AB; }
+  .bar-ghost.freq    { background: rgba(123, 45, 139, 0.18); border-color: #7B2D8B; }
+  .bar-ghost.cvr     { background: rgba(241, 143, 1, 0.18);  border-color: #F18F01; }
+  .bar-ghost.acv     { background: rgba(44, 165, 141, 0.18); border-color: #2CA58D; }
+  .accel-legend {
+    display: flex;
+    gap: 24px;
+    margin-top: 14px;
+    font-size: 12px;
+    color: #666;
+    align-items: center;
+    padding-left: 4px;
+    flex-wrap: wrap;
+  }
+  .accel-legend-item { display: flex; align-items: center; gap: 8px; }
+  .accel-legend-swatch {
+    width: 22px;
+    height: 12px;
+    border-radius: 3px;
+  }
+  .accel-legend-swatch.solid-firmacq { background: #2E86AB; }
+  .accel-legend-swatch.solid-freq    { background: #7B2D8B; }
+  .accel-legend-swatch.solid-cvr     { background: #F18F01; }
+  .accel-legend-swatch.solid-acv     { background: #2CA58D; }
+  .accel-legend-swatch.dashed-generic {
+    background: rgba(120, 120, 120, 0.10);
+    border: 1.5px dashed #888;
+    box-sizing: border-box;
+  }
+  .accel-legend-divider {
+    height: 14px;
+    width: 1px;
+    background: #DDD;
+    margin: 0 4px;
+  }
+
   /* Meta columns */
   .gantt-table td.gantt-meta {
     text-align: center;
@@ -928,14 +1036,27 @@
   <div class="conf-summary" id="initiative-conf-summary"></div>
 </div>
 
-<!-- Section 4: Risks
+<!-- Section 4: Roadmap Acceleration Opportunity
+     Hardcoded list of initiatives that AI enablement could pull forward.
+     Source: ACCEL_INITIATIVES JS array near buildAcceleration().
+-->
+<div class="timeline-section" style="margin-bottom: 36px;">
+  <div class="section-title">
+    <span class="num">4</span> Roadmap Acceleration Opportunity
+  </div>
+  <div style="font-size:13px; color:#888; margin-bottom:12px; margin-left:38px;">Initiatives AI enablement could pull forward</div>
+  <div id="accel-wrap"></div>
+  <div class="accel-legend" id="accel-legend"></div>
+</div>
+
+<!-- Section 5: Risks
      SOURCE: Risk card content from Roadmap deck Slide 7 ("Assumptions Required to Land the Roadmap")
      Slide ID: 1kY2ZXifq7I2JOt_Q4wRwjsblSaykfS15-iIm3UOFw0Q
      Impact dollar estimates are analyst judgment / hardcoded — re-confirm against latest team comms each refresh.
 -->
 <div class="risk-section">
   <div class="section-title">
-    <span class="num">4</span> What Could Break?
+    <span class="num">5</span> What Could Break?
   </div>
   <div class="risk-grid">
     <!-- Row 1: High Risk -->
@@ -2033,6 +2154,73 @@ function buildInitiativeGantt() {
 
 renderWaterfall();
 buildInitiativeGantt();
+
+// -- Roadmap Acceleration Widget --
+// Months: 0=May'26 ... 11=Apr'27. Levers: firmacq | freq | cvr | acv (matches main Gantt).
+// Original (solid) bar runs origStart through end-of-FY (mirrors main Gantt).
+// Ghost (dashed, light-fill) bar fills accStart through origStart-1 — the pull-forward window.
+const ACCEL_INITIATIVES = [
+  { name: 'Accountant-Grade Gus',         lever: 'freq', origStart: 4,  accStart: 3 },
+  { name: 'AI-Driven Workflows: Payroll', lever: 'freq', origStart: 10, accStart: 6 },
+  { name: 'Task Agent MVP via Gus',       lever: 'freq', origStart: 10, accStart: 6 },
+];
+
+const ACCEL_LEVER_LABELS = {
+  firmacq: 'Firm Acquisition',
+  freq:    'Frequency',
+  cvr:     'CvR',
+  acv:     'ACV',
+};
+
+function buildAcceleration() {
+  const wrap = document.getElementById('accel-wrap');
+  if (!wrap) return;
+
+  const monthLabels = ['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+  const quarters = ['Q1 FY27','Q2 FY27','Q3 FY27','Q4 FY27'];
+
+  let html = '<div class="accel-wrapper"><table class="accel-table"><colgroup><col class="col-name">';
+  for (let i = 0; i < 12; i++) html += '<col class="col-month">';
+  html += '</colgroup><thead><tr><th rowspan="2" class="name-label">Initiative</th>';
+  quarters.forEach(q => { html += `<th colspan="3" class="q-label q-start">${q}</th>`; });
+  html += '</tr><tr>';
+  monthLabels.forEach((m, i) => {
+    const qStart = (i % 3 === 0) ? ' q-start' : '';
+    html += `<th class="month-label${qStart}">${m}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  ACCEL_INITIATIVES.forEach(init => {
+    html += `<tr><td class="accel-name">${init.name}</td>`;
+    for (let m = 0; m < 12; m++) {
+      const qStart = (m % 3 === 0) ? ' q-start' : '';
+      let cellInner = '';
+      if (m >= init.origStart) {
+        cellInner = `<div class="bar-original ${init.lever}"></div>`;
+      } else if (m >= init.accStart && m < init.origStart) {
+        cellInner = `<div class="bar-ghost ${init.lever}"></div>`;
+      }
+      html += `<td class="accel-month${qStart}">${cellInner}</td>`;
+    }
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+
+  // Build legend — only include levers actually present in ACCEL_INITIATIVES
+  const usedLevers = [...new Set(ACCEL_INITIATIVES.map(i => i.lever))];
+  const legend = document.getElementById('accel-legend');
+  if (!legend) return;
+  let legendHtml = '';
+  usedLevers.forEach(lever => {
+    legendHtml += `<div class="accel-legend-item"><div class="accel-legend-swatch solid-${lever}"></div><span>${ACCEL_LEVER_LABELS[lever]}</span></div>`;
+  });
+  legendHtml += '<div class="accel-legend-divider"></div>';
+  legendHtml += '<div class="accel-legend-item"><div class="accel-legend-swatch dashed-generic"></div><span>Pull-forward potential (AI-enabled)</span></div>';
+  legend.innerHTML = legendHtml;
+}
+
+buildAcceleration();
 
 function downloadPDF() {
   // Snapshot all current input/select values into inline attributes so print captures them
